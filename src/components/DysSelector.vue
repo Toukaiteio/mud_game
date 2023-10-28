@@ -1,0 +1,105 @@
+<template>
+    <div class="dys_Selector">
+      <div class="dys_Selector_Item" v-for="(_c1,_i1) in selectorProps" :key="_i1" :class="{Selecting:nowSelecting[_i1]}" @click="NewSelection(_c1,_i1);">
+        <svg class="_icon" xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 448 512">
+          <path :d="_c1.icon"></path>
+        </svg>
+        <div class="context" v-dompurify-html="_c1.text"></div>
+      </div>
+    </div>
+</template>
+<script lang="ts" setup>
+import { reactive,defineEmits,defineProps } from 'vue';
+interface SelectorItem{
+    text:string,
+    icon:string,
+    value:number
+}
+const nowSelecting=reactive([]);
+let Selected=0;
+let LastIn=-1;
+const _gprop=defineProps({
+    selectorProps:{
+        type:Array,
+        default: ()=>{return []},
+    },
+    maxAllowSelection:{
+        type:Number,
+        default:3,
+    }
+});
+const emits=defineEmits<{
+    (e:'onSelected',data:number):void,
+    (e:'onCanceled',data:number):void
+}>()
+const NewSelection=(_sitem:SelectorItem,_sindex:number):void=>{
+    if(!(nowSelecting as Array<boolean>)[_sindex]){
+        emits("onSelected",_sitem.value);
+        (nowSelecting as Array<boolean>)[_sindex]=true;
+        Selected+=1;
+        
+    }else{
+        emits("onCanceled",_sitem.value);
+        (nowSelecting as Array<boolean>)[_sindex]=false;
+        Selected-=1;
+    }
+    if(Selected>_gprop.maxAllowSelection){
+        emits("onCanceled",(_gprop.selectorProps as Array<SelectorItem>)[LastIn].value);
+        (nowSelecting as Array<boolean>)[LastIn]=false;
+        Selected-=1;
+        if(Selected==0) LastIn=-1;
+    }
+    LastIn=_sindex;
+}
+for(const _ in _gprop.selectorProps){
+    (nowSelecting as Array<boolean>).push(false);
+}
+</script>
+<style lang="scss" scoped>
+    $BaseMainColor:#1F242B;
+    $BaseSecondaryColor:#0046FF;
+    $BaseSecondaryColor2:#F91941;
+    $BaseSecondaryColor3:#00B1FF;
+    $FontColor:lighten($BaseMainColor,40%);
+    $FontActive:lighten($BaseMainColor,55%);
+    .dys_Selector{
+        width: 100%;
+        padding-left: 32px;
+        padding-right: 32px;
+        .dys_Selector_Item{
+            transition: all 0.4s;
+            width: 100%;
+            height: 42px;
+            padding: 6px;
+            padding-bottom: 6px;
+            background-color: lighten($BaseMainColor,10%);
+            color:$FontColor;
+            .context{
+                flex:1;
+                width: 0;
+                height: 100%;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            svg{
+                height: 100%;
+                aspect-ratio: 1 / 1;
+                padding-right: 12px;
+            }
+            display: flex;
+            justify-content: left;
+            align-items: center;
+            word-break: keep-all;
+            white-space: nowrap;
+            font-size: 23px;
+            fill: $FontActive;
+            &.Selecting{
+                background-color: $BaseSecondaryColor3;
+                color: lighten($FontColor,100%);
+                svg{
+                    fill: lighten($FontColor,100%);
+                }
+            }
+        }
+    }
+</style>

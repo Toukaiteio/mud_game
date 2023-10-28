@@ -1,0 +1,22 @@
+{
+    "langType":"en-US",
+    "langDisplay":"English(US)",
+    "lang":{
+        "_tab_create_character":"Create Your Charater",
+        "_gameinputer_playername":"Your Name Here",
+        "_gameinputer_playername_Overlength":"Name Should Be Under 32 Chars",
+        "_gameinputer_playername_Empty":"Name Can't Be Empty",
+        "_tab_create_character_HelloPage_Hello":"Hello,<font color='white'><replace>PlayerName</replace></font>!",
+        "_tab_create_character_HelloPage_ChooseGender":"You prefer to be a(n) <replace>PlayerGenderDisplay</replace>",
+        "_tab_create_character_HelloPage_ChooseGender_Male":"Male",
+        "_tab_create_character_HelloPage_ChooseGender_Female":"<font color='pink'>Female</font>",
+        "_tab_create_character_HelloPage_ChooseGender_NMale":"Non-binary with Male sexuality",
+        "_tab_create_character_HelloPage_ChooseGender_NFamale":"Non-binary with <font color='pink'>Female</font> sexuality",
+        "_tab_create_character_HelloPage_ChooseGender_Warning_Empty":"<font color='red'>You havent choose your gender yet!</font>",
+        "_general_ATK":"ATK",
+        "_general_DEF":"DEF",
+        "_general_MOV":"MOV",
+        "_tab_choose_start_StartPage_Line1":"Your name is <font color='white'><replace>PlayerName</replace></font>.As you grow up,you find your self a <font color='white'><replace>PlayerGenderDisplay</replace></font>",
+        "_tab_choose_start_StartPage_Line2":"Since you've grown up You have ability of => \n <font color='yellow'>ATK</font>:<font color='green'><replace>PlayerStatus.ATK</replace></font> <font color='yellow'>DEF</font>:<font color='green'><replace>PlayerStatus.DEF</replace></font> <font color='yellow'>MOV</font>:<font color='green'><replace>PlayerStatus.MOV</replace></font>"
+    }
+}
