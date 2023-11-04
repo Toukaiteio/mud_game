@@ -3,24 +3,36 @@
     <!-- <div class="dys_Menu_Item">
       {{ testprop }}
     </div> -->
-    <div class="dys_Menu_Item" v-for="(_c1,_i1) in menuprops" :key="_i1" :class="{Selecting:(_i1==nowSelecting)}" @click="nowSelecting=_i1;">
-      <svg class="_icon" xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 448 512">
+    <div class="dys_Menu_Item" v-for="(_c1,_i1) in menuprops" :key="_i1" :class="{Selecting:(_i1==nowSelecting)}" @click="changeNowSelecting(_i1)">
+      <svg class="_icon" v-if="_c1._icon" xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 448 512">
         <path :d="_c1._icon"></path>
       </svg>
-      <div class="context" v-dompurify-html="_c1._text"></div>
+      <div class="context" v-dompurify-html="$t(_c1._text)"></div>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { defineProps,ref } from 'vue';
-const nowSelecting=ref(0);
-defineProps({
+import { defineProps,defineEmits,ref } from 'vue';
+import { useGameMainStorage } from '@/utils/store';
+const { $t } = useGameMainStorage();
+const _gprops=defineProps({
   menuprops:{
     type:Array,
     default: ()=>{return []}
+  },
+  selectingItem:{
+    type:Number,
+    default:0,
   }
 })
+const emits=defineEmits<{
+  (e:"update:selectingItem",data:number):void}>()
+const nowSelecting=ref(_gprops.selectingItem);
+const changeNowSelecting=(_index:number)=>{
+  nowSelecting.value=_index;
+  emits("update:selectingItem",_index);
+}
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->

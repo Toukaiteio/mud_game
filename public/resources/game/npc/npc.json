@@ -1,0 +1,8 @@
+{
+    "100":{
+        "name":"_npc_orphanage_owner",
+        "default":{
+            "fav":-5
+        }
+    }
+}

@@ -1,5 +1,5 @@
-import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
-import Home from '../views/DefaultView.vue'
+import { createRouter, createMemoryHistory, RouteRecordRaw } from 'vue-router'
+import Home from '../views/CreateCharacter.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -7,6 +7,11 @@ const routes: Array<RouteRecordRaw> = [
     name: 'home',
     component: Home
   },
+  {
+    path:'/main',
+    name:'gamemain',
+    component:() => import('../views/GameMain.vue')
+  }
   // {
   //   path: '/about',
   //   name: 'about',
@@ -15,7 +20,7 @@ const routes: Array<RouteRecordRaw> = [
 ]
 
 const router = createRouter({
-  history: createWebHistory(process.env.BASE_URL),
+  history: createMemoryHistory(process.env.BASE_URL),
   routes
 })
 

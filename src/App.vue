@@ -1,28 +1,35 @@
 <template>
-  <div class="mobile">
+  <div class="mobile" @contextmenu.prevent>
     <div class="MainWrapper">
       <div class="Displayer">
-        <router-view></router-view>
+          <router-view v-slot="{ Component }">
+            <transition name="fade">
+              <component :is="Component" />
+            </transition>
+          </router-view>
+        
       </div>
       <div class="Menu">
-        <DysMenu :menuprops="MenuElement"></DysMenu>
+        <DysMenu :menuprops="MenuElement" v-model:selecting-item="Global_BasicPlayerData.MenuSelecting" ></DysMenu>
       </div>
     </div>
   </div>
-
+  <!-- 
+    to_do_list:
+    -为自定义function接口增加参数设定功能，参数只能接受字符串和数和布尔姓值，在function_event中通过#$参数名，访问
+    X 增加通过ID访问npc对象的接口
+    为npc增加事件池与Common事件池
+    为npc能加Action功能，功能参照地点functions属性
+    增加自定义菜单内容的接口
+    增加自定义窗口内容的接口
+figure_out
+    通过特定变量控制npc事件池
+   -->
 </template>
 <script lang="ts" setup>
-import { ref } from 'vue';
 import DysMenu from './components/DysMenu.vue';
-import { useGameMainStorage } from '@/utils/store';
-const { $t }=useGameMainStorage();
-const MenuElement=ref([
-  {
-    _icon:"M304 128a80 80 0 1 0 -160 0 80 80 0 1 0 160 0zM96 128a128 128 0 1 1 256 0A128 128 0 1 1 96 128zM49.3 464H398.7c-8.9-63.3-63.3-112-129-112H178.3c-65.7 0-120.1 48.7-129 112zM0 482.3C0 383.8 79.8 304 178.3 304h91.4C368.2 304 448 383.8 448 482.3c0 16.4-13.3 29.7-29.7 29.7H29.7C13.3 512 0 498.7 0 482.3z",
-    target:"./",
-    _text:$t("_tab_create_character")
-  },
-])
+import { useGameMainStorage } from './utils/store';
+const { MenuElement,Global_BasicPlayerData }=useGameMainStorage();
 </script>
 <style lang="scss">
 $BaseMainColor:#1F242B;

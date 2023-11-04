@@ -1,0 +1,41 @@
+{
+    "10000":{
+        "name":"_location_orphanage",
+        "default":{
+            "linked":{"10001":{ "cost":2 }},
+            "hasNPC":["100"],
+            "functions":["REST","TALK#100"],
+            "effect":{
+                "add":{
+                    "PlayerStatus.HP":20,
+                    "condition":{
+                        "PlayerStatus.Happy":{
+                            "gtr":60,
+                            "condition-true":-0.05
+                        }
+                    }
+                    }
+            }
+        }
+    },
+    "10001":{
+        "name":"_location_orphanage_outside",
+        "default":{
+            "linked":{ "10000":{ "cost" : 2 } },
+            "hasNPC":[],
+            "functions":["PLANT"],
+            "effect":{
+                "add":{
+                    "condition":{
+                        "PlayerStatus.Happy":{
+                            "lss":20,
+                            "condition-true":0.08
+                        }
+                    }
+                }
+            }
+        }
+        
+        
+    }
+}

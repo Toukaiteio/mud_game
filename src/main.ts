@@ -7,7 +7,7 @@ createApp(App).use(router).use(vueDompurifyHTMLPlugin,{
     default:{
         ALLOW_COMMENTS:false,
         FORBID_URI:['*'],
-        ALLOWED_TAGS:['font'],
+        ALLOWED_TAGS:['font',"br","b"],
         ADD_URI_SAFE_ATTR: ['src'],
         ALLOWED_ATTR: ['color'],
     }
