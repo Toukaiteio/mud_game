@@ -7,23 +7,20 @@
               <component :is="Component" />
             </transition>
           </router-view>
-        
       </div>
       <div class="Menu">
         <DysMenu :menuprops="MenuElement" v-model:selecting-item="Global_BasicPlayerData.MenuSelecting" ></DysMenu>
       </div>
+      <div class="SecondaryMenu" :class="{PopUp:Global_BasicPlayerData.MenuSelecting>0,Hidden:Global_BasicPlayerData.MenuSelecting==0}">
+        <!-- Display menu in column -->
+        <div class="MenuContainer">
+
+        </div>
+      </div>
     </div>
   </div>
   <!-- 
-    to_do_list:
-    -为自定义function接口增加参数设定功能，参数只能接受字符串和数和布尔姓值，在function_event中通过#$参数名，访问
-    X 增加通过ID访问npc对象的接口
-    为npc增加事件池与Common事件池
-    为npc能加Action功能，功能参照地点functions属性
-    增加自定义菜单内容的接口
-    增加自定义窗口内容的接口
-figure_out
-    通过特定变量控制npc事件池
+    I'm going to fall asleep.
    -->
 </template>
 <script lang="ts" setup>
@@ -115,6 +112,45 @@ $TabBarHeight:55px;
       overflow-x: none;
       &::-webkit-scrollbar{
         display: none;
+      }
+    }
+    .SecondaryMenu{
+      height: 100%;
+      width: 100%;
+      padding-right: 140px;
+      padding-bottom: 55px;
+      transition: background 0.6s;
+      position: absolute;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+        user-select: none;
+      .MenuContainer{
+        width: 100%;
+        height: 100%;
+        position: relative;
+        background-color: lighten($color: $BaseMainColor, $amount: 0.15);
+        border-right: 1px solid $BaseSecondaryColor4;
+        border-top-right-radius: 8px;
+        border-bottom-right-radius: 8px;
+        overflow: hidden;
+        transition: transform 0.6s,opacity 1s;
+      }
+      &.Hidden{
+        background: transparent;
+        // left: -110%;
+        .MenuContainer{
+          transform: translateX(-110%);
+          pointer-events: none;
+          user-select: none;
+          opacity: 0;
+        }
+      }
+      &.PopUp{
+        background: transparentize($color: $BaseMainColor, $amount: 0.8);
+        .Menu{
+          transform: translateX(0%);
+        }
       }
     }
   }

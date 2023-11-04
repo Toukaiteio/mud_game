@@ -18,7 +18,6 @@ interface SelectorItem{
     value:any
 }
 const nowSelecting=reactive([]);
-let Selected=0;
 let LastIn=-1;
 const _gprop=defineProps({
     selectorProps:{
@@ -28,30 +27,47 @@ const _gprop=defineProps({
     maxAllowSelection:{
         type:Number,
         default:3,
+    },
+    limitAllowSelection:{
+        type:Number,
+        default:-1
     }
 });
+let Selected=0;
 const emits=defineEmits<{
     (e:'onSelected',data:any):void,
     (e:'onCanceled',data:any):void
 }>()
 const NewSelection=(_sitem:SelectorItem,_sindex:number):void=>{
+    let _f=false;
     if(!(nowSelecting as Array<boolean>)[_sindex]){
-        emits("onSelected",_sitem.value);
-        (nowSelecting as Array<boolean>)[_sindex]=true;
-        Selected+=1;
-        
+        if((_gprop.limitAllowSelection>0 || LastIn!=-1) || _gprop.limitAllowSelection==-1){
+            
+            emits("onSelected",_sitem.value);
+            (nowSelecting as Array<boolean>)[_sindex]=true;
+            Selected+=1;
+            _f=true;
+        }
     }else{
         emits("onCanceled",_sitem.value);
         (nowSelecting as Array<boolean>)[_sindex]=false;
         Selected-=1;
+        if(LastIn==_sindex) LastIn=-1;
     }
-    if(Selected>_gprop.maxAllowSelection){
+    if(Selected>_gprop.maxAllowSelection && _gprop.limitAllowSelection==-1 && LastIn!=-1){
         emits("onCanceled",(_gprop.selectorProps as Array<SelectorItem>)[LastIn].value);
         (nowSelecting as Array<boolean>)[LastIn]=false;
         Selected-=1;
         if(Selected==0) LastIn=-1;
+    }else if(_gprop.limitAllowSelection!=-1){
+        if( _gprop.limitAllowSelection<=0 && LastIn!=-1){
+            emits("onCanceled",(_gprop.selectorProps as Array<SelectorItem>)[LastIn].value);
+            (nowSelecting as Array<boolean>)[LastIn]=false;
+            Selected-=1;
+            if(Selected==0) LastIn=-1;
+        }
     }
-    LastIn=_sindex;
+    if(_f) LastIn=_sindex;
 }
 for(const _ in _gprop.selectorProps){
     (nowSelecting as Array<boolean>).push(false);
@@ -75,6 +91,7 @@ for(const _ in _gprop.selectorProps){
             padding: 6px;
             padding-bottom: 6px;
             background-color: lighten($BaseMainColor,10%);
+            border-bottom: 1px solid $BaseMainColor;
             color:$FontColor;
             .context{
                 flex:1;

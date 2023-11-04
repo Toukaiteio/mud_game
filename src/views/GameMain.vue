@@ -11,7 +11,12 @@
         </div>
         <div class="ActionBox BOX">
             <div class="ActionIntro"  v-dompurify-html="$t('_gamemain_player_action')"></div>
-            <DysSelector :max-allow-selection="1" :selector-props="Global_BasicPlayerData.RoundAllowActions"></DysSelector>
+            <DysSelector @on-selected="generalOnSelectHandler" @on-canceled="generalOnCanceledHandler" :max-allow-selection="1" :limit-allow-selection="ScopedPageStateManager.Global_RestAllowActionTimes" :selector-props="Global_BasicPlayerData.RoundAllowActions"></DysSelector>
+        </div>
+        <div class="NextBox BOX">
+            <div class="NextRoundAction">
+
+            </div>
         </div>
         <!-- <div class="NextRoundBtn" @click="GetRoundEvent()">TriggerAllEvent_DebugButton_NotInGame</div> -->
     </div>
@@ -21,10 +26,20 @@ import { useGameMainStorage } from '@/utils/store';
 import GameEventList from '../../public/resources/game/events/events.json';
 import GameLocationFunctionList from '../../public/resources/game/locations/LocationFunctions.json';
 import DysSelector from '@/components/DysSelector.vue';
+import { reactive } from 'vue';
 const { Global_BasicPlayerData,RoundTempVarable,actionParser,conditionParser,effectParser,$t }=useGameMainStorage();
 // const GetEventTimes=():number=>{
 //     return [0,0,1,2,0,0,3,0,2,1,1,1,0,0,1,0,0,1,0,2][Math.round((Math.random()*10000)%20)];
 // }
+const ScopedPageStateManager=reactive({
+    Global_RestAllowActionTimes:1
+})
+const generalOnSelectHandler=()=>{
+    ScopedPageStateManager.Global_RestAllowActionTimes-=1;
+}
+const generalOnCanceledHandler=(data:number)=>{
+    ScopedPageStateManager.Global_RestAllowActionTimes+=1;
+}
 const formatTime=(_time:number):string=>{
     const hour=`${Math.floor(_time / 60)}`.padStart(2,"0");
     const minute=`${_time%60}`.padStart(2,"0");
@@ -50,7 +65,8 @@ const MoveTo=(lid:string):void=>{
 }
 const PROGRAMHOLDER={
     "#PROGRAM_HOLD_TALK_FUNCTION":(TargetID:string)=>{ //bug here. It equals its future value;
-        (RoundTempVarable as Record<string,any>)["#PROGRAM_HOLD_TALK_FUNCTION"]=$t((Global_BasicPlayerData as Record<string,any>)["GameOnNpcs"][TargetID]["name"]);
+        (RoundTempVarable as Record<string,any>)["#PROGRAM_HOLD_TALK_FUNCTION"]=$t("_function_TALK_Prefix")+"<font color='yellow'>"+$t((Global_BasicPlayerData as Record<string,any>)["GameOnNpcs"][TargetID]["name"])+"</font>";
+        // console.log($t((Global_BasicPlayerData as Record<string,any>)["GameOnNpcs"]),TargetID,(RoundTempVarable as Record<string,any>)["#PROGRAM_HOLD_TALK_FUNCTION"]);
     }
 }
 const GetActionList=():void=>{

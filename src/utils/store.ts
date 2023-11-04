@@ -125,14 +125,14 @@ export const useGameMainStorage = defineStore('game_data',{
                 }
                 return _str;
             }else{
-                    return Id;
+                    return (this.RoundTempVarable as Record<string,any>)[Id].replaceAll('\n',"<br/>") || Id;
             }
         },
         hasTag(tag:string):boolean{
             return (Object.keys(this.Global_BasicPlayerData.PlayerTags).indexOf(tag)!=-1)
         },
         isConditionName(condition:string):boolean{
-            return (["has","equ","lss","gtr","leq","geq","neq","at","chance"].indexOf(condition)!=-1)
+            return (["has","equ","lss","gtr","leq","geq","neq","at","chance","eval"].indexOf(condition)!=-1)
         },
         isFunctionName(name:string):boolean{
             return (Object.keys(functionEvents).indexOf(name)!=-1)

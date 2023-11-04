@@ -52,6 +52,7 @@
                 </div>
                 <div class="CommonSelector">
                         <DysSelector @on-selected="OnBornSelectedHandler" @on-canceled="OnBornCanceledHandler" :max-allow-selection="1" :selector-props="PageComponentsManager.BornSelectorList"></DysSelector>
+                        
                         <div class="WraningMessage" v-dompurify-html="PageStateManager.BornSelectorWarningMessage"></div>
                 </div>
             </div>

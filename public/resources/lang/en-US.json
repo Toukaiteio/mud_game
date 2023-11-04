@@ -46,6 +46,8 @@
         "_tab_CheckSelfStatus":"Self",
         "_tab_Storage":"Backpack",
         "_tab_Equipment":"Outfit",
-        "_function_REST":"Rest"
+        "_function_REST":"Rest",
+        "_function_PLANT":"PLANT",
+        "_function_TALK_Prefix":"Talk With:"
     }
 }
