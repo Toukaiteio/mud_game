@@ -74,8 +74,8 @@
 import { useGameMainStorage } from '@/utils/store';
 import DysSelector from '@/components/DysSelector.vue';
 import DysRange from '@/components/DysRange.vue';
-import GenderList from '../../public/resources/game/born/GenderList.json';
-import BornList from '../../public/resources/game/born/PlayerAllowBorn.json';
+import GenderList from '@/resources/game/born/GenderList.json';
+import BornList from '@/resources/game/born/PlayerAllowBorn.json';
 import { reactive} from 'vue';
 import router from '@/router';
 let GameFileList=reactive(JSON.parse(localStorage.getItem("GameSaveFiles") || '{"save":[]}') as Record<string,any>);
@@ -112,7 +112,8 @@ const CancelDeleteAnimation=(index:number):void=>{
         DeleteAnimationTimeOut=-1;
     }
 }
-const { Global_BasicPlayerData,MenuElement,GameMap,GameNpc, $t,effectParser }=useGameMainStorage();
+const GameData=useGameMainStorage();
+const { Global_BasicPlayerData,indexMap,MenuData,GameMap,GameNpc, $t,effectParser }=GameData;
 const GenderListParser=(ori:Array<Record<string,any>>):Array<Record<string,any>>=>{
     const _result:Array<Record<string,any>>=[];
     for(const i in ori){
@@ -221,30 +222,23 @@ const LoadGameFromSaveFile=(SaveFileName:string):void=>{
     for(const i in _savedata){
         (Global_BasicPlayerData as Record<string,any>)[i]=_savedata[i];
     }
-    MenuElement.pop();
-    MenuElement.push(
-        {
+    MenuData.MenuElement=[{
             _icon:"M304 128a80 80 0 1 0 -160 0 80 80 0 1 0 160 0zM96 128a128 128 0 1 1 256 0A128 128 0 1 1 96 128zM49.3 464H398.7c-8.9-63.3-63.3-112-129-112H178.3c-65.7 0-120.1 48.7-129 112zM0 482.3C0 383.8 79.8 304 178.3 304h91.4C368.2 304 448 383.8 448 482.3c0 16.4-13.3 29.7-29.7 29.7H29.7C13.3 512 0 498.7 0 482.3z",
-            target:"./",
             _text:"_tab_Main"
         },
         {
             _icon:"M304 128a80 80 0 1 0 -160 0 80 80 0 1 0 160 0zM96 128a128 128 0 1 1 256 0A128 128 0 1 1 96 128zM49.3 464H398.7c-8.9-63.3-63.3-112-129-112H178.3c-65.7 0-120.1 48.7-129 112zM0 482.3C0 383.8 79.8 304 178.3 304h91.4C368.2 304 448 383.8 448 482.3c0 16.4-13.3 29.7-29.7 29.7H29.7C13.3 512 0 498.7 0 482.3z",
-            target:"./",
             _text:"_tab_CheckSelfStatus"
         },
         {
             _icon:"M304 128a80 80 0 1 0 -160 0 80 80 0 1 0 160 0zM96 128a128 128 0 1 1 256 0A128 128 0 1 1 96 128zM49.3 464H398.7c-8.9-63.3-63.3-112-129-112H178.3c-65.7 0-120.1 48.7-129 112zM0 482.3C0 383.8 79.8 304 178.3 304h91.4C368.2 304 448 383.8 448 482.3c0 16.4-13.3 29.7-29.7 29.7H29.7C13.3 512 0 498.7 0 482.3z",
-            target:"./",
             _text:"_tab_Storage"
         },
         {
             _icon:"M304 128a80 80 0 1 0 -160 0 80 80 0 1 0 160 0zM96 128a128 128 0 1 1 256 0A128 128 0 1 1 96 128zM49.3 464H398.7c-8.9-63.3-63.3-112-129-112H178.3c-65.7 0-120.1 48.7-129 112zM0 482.3C0 383.8 79.8 304 178.3 304h91.4C368.2 304 448 383.8 448 482.3c0 16.4-13.3 29.7-29.7 29.7H29.7C13.3 512 0 498.7 0 482.3z",
-            target:"./",
             _text:"_tab_Equipment"
-        },
-        
-    )
+        }];
+    for(const i of MenuData.MenuElement) (indexMap as Array<string>).push(i["_text"]);
     router.push("./main")
 }
 const FinalPlayerCreateAction=():void=>{
@@ -252,35 +246,24 @@ const FinalPlayerCreateAction=():void=>{
     if(Global_BasicPlayerData.PlayerBorn!=-1){
         PageComponentsManager.GenderSelectorList[Global_BasicPlayerData.PlayerGender].callback();
         Global_BasicPlayerData.PlayerLocate="10000";
-        MenuElement.pop();
-        MenuElement.push(
-            {
-                _icon:"M304 128a80 80 0 1 0 -160 0 80 80 0 1 0 160 0zM96 128a128 128 0 1 1 256 0A128 128 0 1 1 96 128zM49.3 464H398.7c-8.9-63.3-63.3-112-129-112H178.3c-65.7 0-120.1 48.7-129 112zM0 482.3C0 383.8 79.8 304 178.3 304h91.4C368.2 304 448 383.8 448 482.3c0 16.4-13.3 29.7-29.7 29.7H29.7C13.3 512 0 498.7 0 482.3z",
-                target:"./",
-                _text:"_tab_CheckSelfStatus"
-            },
-            {
-                _icon:"M304 128a80 80 0 1 0 -160 0 80 80 0 1 0 160 0zM96 128a128 128 0 1 1 256 0A128 128 0 1 1 96 128zM49.3 464H398.7c-8.9-63.3-63.3-112-129-112H178.3c-65.7 0-120.1 48.7-129 112zM0 482.3C0 383.8 79.8 304 178.3 304h91.4C368.2 304 448 383.8 448 482.3c0 16.4-13.3 29.7-29.7 29.7H29.7C13.3 512 0 498.7 0 482.3z",
-                target:"./",
-                _text:"_tab_FastSave"
-            },
-            {
-                _icon:"M304 128a80 80 0 1 0 -160 0 80 80 0 1 0 160 0zM96 128a128 128 0 1 1 256 0A128 128 0 1 1 96 128zM49.3 464H398.7c-8.9-63.3-63.3-112-129-112H178.3c-65.7 0-120.1 48.7-129 112zM0 482.3C0 383.8 79.8 304 178.3 304h91.4C368.2 304 448 383.8 448 482.3c0 16.4-13.3 29.7-29.7 29.7H29.7C13.3 512 0 498.7 0 482.3z",
-                target:"./",
-                _text:"_tab_Main"
-            },
-            {
-                _icon:"M304 128a80 80 0 1 0 -160 0 80 80 0 1 0 160 0zM96 128a128 128 0 1 1 256 0A128 128 0 1 1 96 128zM49.3 464H398.7c-8.9-63.3-63.3-112-129-112H178.3c-65.7 0-120.1 48.7-129 112zM0 482.3C0 383.8 79.8 304 178.3 304h91.4C368.2 304 448 383.8 448 482.3c0 16.4-13.3 29.7-29.7 29.7H29.7C13.3 512 0 498.7 0 482.3z",
-                target:"./",
-                _text:"_tab_Storage"
-            },
-            {
-                _icon:"M304 128a80 80 0 1 0 -160 0 80 80 0 1 0 160 0zM96 128a128 128 0 1 1 256 0A128 128 0 1 1 96 128zM49.3 464H398.7c-8.9-63.3-63.3-112-129-112H178.3c-65.7 0-120.1 48.7-129 112zM0 482.3C0 383.8 79.8 304 178.3 304h91.4C368.2 304 448 383.8 448 482.3c0 16.4-13.3 29.7-29.7 29.7H29.7C13.3 512 0 498.7 0 482.3z",
-                target:"./",
-                _text:"_tab_Equipment"
-            },
-            
-        )
+
+        MenuData.MenuElement=[{
+            _icon:"M304 128a80 80 0 1 0 -160 0 80 80 0 1 0 160 0zM96 128a128 128 0 1 1 256 0A128 128 0 1 1 96 128zM49.3 464H398.7c-8.9-63.3-63.3-112-129-112H178.3c-65.7 0-120.1 48.7-129 112zM0 482.3C0 383.8 79.8 304 178.3 304h91.4C368.2 304 448 383.8 448 482.3c0 16.4-13.3 29.7-29.7 29.7H29.7C13.3 512 0 498.7 0 482.3z",
+            _text:"_tab_Main"
+        },
+        {
+            _icon:"M304 128a80 80 0 1 0 -160 0 80 80 0 1 0 160 0zM96 128a128 128 0 1 1 256 0A128 128 0 1 1 96 128zM49.3 464H398.7c-8.9-63.3-63.3-112-129-112H178.3c-65.7 0-120.1 48.7-129 112zM0 482.3C0 383.8 79.8 304 178.3 304h91.4C368.2 304 448 383.8 448 482.3c0 16.4-13.3 29.7-29.7 29.7H29.7C13.3 512 0 498.7 0 482.3z",
+            _text:"_tab_CheckSelfStatus"
+        },
+        {
+            _icon:"M304 128a80 80 0 1 0 -160 0 80 80 0 1 0 160 0zM96 128a128 128 0 1 1 256 0A128 128 0 1 1 96 128zM49.3 464H398.7c-8.9-63.3-63.3-112-129-112H178.3c-65.7 0-120.1 48.7-129 112zM0 482.3C0 383.8 79.8 304 178.3 304h91.4C368.2 304 448 383.8 448 482.3c0 16.4-13.3 29.7-29.7 29.7H29.7C13.3 512 0 498.7 0 482.3z",
+            _text:"_tab_Storage"
+        },
+        {
+            _icon:"M304 128a80 80 0 1 0 -160 0 80 80 0 1 0 160 0zM96 128a128 128 0 1 1 256 0A128 128 0 1 1 96 128zM49.3 464H398.7c-8.9-63.3-63.3-112-129-112H178.3c-65.7 0-120.1 48.7-129 112zM0 482.3C0 383.8 79.8 304 178.3 304h91.4C368.2 304 448 383.8 448 482.3c0 16.4-13.3 29.7-29.7 29.7H29.7C13.3 512 0 498.7 0 482.3z",
+            _text:"_tab_Equipment"
+        }];
+        for(const i of MenuData.MenuElement) (indexMap as Array<string>).push(i["_text"]);
         Global_BasicPlayerData["GameOnMap"]=MapAndNPCLoader(GameMap)!;
         Global_BasicPlayerData["GameOnNpcs"]=MapAndNPCLoader(GameNpc)!;
         Global_BasicPlayerData.PlayerLocateDisplay=$t((Global_BasicPlayerData.GameOnMap as Record<string,any>)[Global_BasicPlayerData.PlayerLocate]["name"]);

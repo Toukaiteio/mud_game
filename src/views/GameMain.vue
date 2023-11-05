@@ -23,8 +23,8 @@
 </template>
 <script lang="ts" setup>
 import { useGameMainStorage } from '@/utils/store';
-import GameEventList from '../../public/resources/game/events/events.json';
-import GameLocationFunctionList from '../../public/resources/game/locations/LocationFunctions.json';
+import GameEventList from '@/resources/game/events/events.json';
+import GameLocationFunctionList from '@/resources/game/locations/LocationFunctions.json';
 import DysSelector from '@/components/DysSelector.vue';
 import { reactive } from 'vue';
 const { Global_BasicPlayerData,RoundTempVarable,actionParser,conditionParser,effectParser,$t }=useGameMainStorage();

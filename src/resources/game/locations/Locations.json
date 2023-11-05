@@ -1,6 +1,7 @@
 {
     "10000":{
         "name":"_location_orphanage",
+        "comment":"Using Event To effect Player instead of using effect on a location",
         "default":{
             "linked":{"10001":{ "cost":2 }},
             "hasNPC":["100"],

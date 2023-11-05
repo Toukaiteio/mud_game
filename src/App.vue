@@ -9,12 +9,12 @@
           </router-view>
       </div>
       <div class="Menu">
-        <DysMenu :menuprops="MenuElement" v-model:selecting-item="Global_BasicPlayerData.MenuSelecting" ></DysMenu>
+        <DysMenu :menuprops="MenuData.MenuElement" v-model:selecting-item="Global_BasicPlayerData.MenuSelecting" ></DysMenu>
       </div>
       <div class="SecondaryMenu" :class="{PopUp:Global_BasicPlayerData.MenuSelecting>0,Hidden:Global_BasicPlayerData.MenuSelecting==0}">
         <!-- Display menu in column -->
         <div class="MenuContainer">
-
+          <DysMenuSecondary :menuprops="SwitchScondaryMenu(indexMap[Global_BasicPlayerData.MenuSelecting])"></DysMenuSecondary>
         </div>
       </div>
     </div>
@@ -25,8 +25,19 @@
 </template>
 <script lang="ts" setup>
 import DysMenu from './components/DysMenu.vue';
+import DysMenuSecondary from './components/DysMenuSecondary.vue';
+import PlayerDefaultSetting from '@/resources/game/born/DefaultPlayerStatus.json'
 import { useGameMainStorage } from './utils/store';
-const { MenuElement,Global_BasicPlayerData }=useGameMainStorage();
+const initialData=useGameMainStorage();
+
+for(const i in PlayerDefaultSetting){
+  //I just too lazy to write a new interface.Maybe someday I'll write that.
+  (initialData as Record<string,any>)[i]=(PlayerDefaultSetting as Record<string,any>)[i];
+}
+const { indexMap,MenuData,Global_BasicPlayerData }=initialData;
+const SwitchScondaryMenu=(id:string)=>{
+  return (MenuData.SecondaryMenuElement as Record<string,any>)[id] || [];
+}
 </script>
 <style lang="scss">
 $BaseMainColor:#1F242B;
@@ -118,13 +129,11 @@ $TabBarHeight:55px;
       height: 100%;
       width: 100%;
       padding-right: 140px;
-      padding-bottom: 55px;
+      padding-top: 55px;
       transition: background 0.6s;
       position: absolute;
-      top: 0;
+      top: -55px;
       left: 0;
-      pointer-events: none;
-        user-select: none;
       .MenuContainer{
         width: 100%;
         height: 100%;
@@ -138,11 +147,11 @@ $TabBarHeight:55px;
       }
       &.Hidden{
         background: transparent;
+        pointer-events: none;
+        user-select: none;
         // left: -110%;
         .MenuContainer{
           transform: translateX(-110%);
-          pointer-events: none;
-          user-select: none;
           opacity: 0;
         }
       }
@@ -151,6 +160,12 @@ $TabBarHeight:55px;
         .Menu{
           transform: translateX(0%);
         }
+      }
+      .BottomPlaceHolder{
+        height: 55px;
+        width: 100%;
+        pointer-events: none;
+        user-select: none;
       }
     }
   }

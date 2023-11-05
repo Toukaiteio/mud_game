@@ -3,17 +3,19 @@
     <!-- <div class="dys_Menu_Item">
       {{ testprop }}
     </div> -->
-    <div class="dys_Menu_Item" v-for="(_c1,_i1) in menuprops" :key="_i1" :class="{Selecting:(_i1==nowSelecting)}" @click="nowSelecting=_i1;">
+    <div class="dys_Menu_Item" v-for="(_c1,_i1) in menuprops" :key="_i1">
       <svg class="_icon" xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 448 512">
         <path :d="_c1._icon"></path>
       </svg>
-      <div class="context">{{ _c1._text }}</div>
+      <div class="context" v-dompurify-html="$t(_c1._text)"></div>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { defineProps,ref } from 'vue';
+import { useGameMainStorage } from '@/utils/store';
+const {$t} = useGameMainStorage();
 const nowSelecting=ref(0);
 defineProps({
   menuprops:{
@@ -22,14 +24,18 @@ defineProps({
   }
 })
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="scss">
-$BaseMainColor:#FFFFFF;
-$BaseSecondaryColor:#f27bff;
-$FontColor:darken($BaseMainColor,55%);
-$FontActive:darken($BaseMainColor,40%);
+$BaseMainColor:#1F242B;
+$BaseSecondaryColor:#0046FF;
+$BaseSecondaryColor2:#F91941;
+$BaseSecondaryColor3:#00B1FF;
+$BaseSecondaryColor4:#008b7b;
+$FontColor:lighten($BaseMainColor,40%);
+$FontActive:lighten($BaseMainColor,55%);
+
 .dys_Menu{
+  padding-top: 22px;
+  padding-bottom: 22px;
   &::-webkit-scrollbar{
         display: none;
       }
@@ -39,46 +45,41 @@ $FontActive:darken($BaseMainColor,40%);
       overflow-y: scroll;
       overflow-x: hidden;
       display: flex;
-      flex-direction: row;
-      justify-content: center;
+      flex-direction: column;
       .dys_Menu_Item{
+        padding: 12px;
         transition: all 0.6s;
-        .context{
-          height: 0px;
-          width: 0px;
-          overflow: hidden;
-        }
-        &.Selecting{
-          background-color: lighten($BaseMainColor,100%);
-          border-radius: 6px;
-          ._icon{
-            height: 50% !important;
+        ._icon{
+            height: 100%;
             aspect-ratio: 1 / 1;
-            fill: $FontActive;
-          }
-          .context{
-            height: 50% !important;
-            width: 100% !important;
+            fill: $FontColor;
+        }
+        .context{
+            height: 100%;
+            width: 100%;
             white-space: nowrap;
+            line-height: 29px;
+            vertical-align: bottom;
+            font-size: 18px;
             word-break: keep-all;
             overflow: hidden;
-            text-align: center;
+          }
+        &.Selecting{
+          background-color: lighten($BaseMainColor,20%);
+          ._icon{
+            fill: $FontActive !important;
           }
           
         }
         width: 100%;
+        height: 45px;
         aspect-ratio: 1 / 1;
         padding-top: 8px;
         padding-bottom: 8px;
         display: flex;
-        flex-direction: column;
         align-items: center;
-        justify-content: center;
-        ._icon{
-          height: 65%;
-          aspect-ratio: 1 / 1;
-          fill: $FontColor;
-        }
+        background-color: lighten($BaseMainColor,10%);
+        justify-content: space-evenly;
       }
 }
 </style>
