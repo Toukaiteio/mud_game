@@ -8,7 +8,7 @@
                     <input type="text" v-model="UserInputManager.PlayerSaveName" class="GameInputer" :placeholder="$t('_gameinputer_playersavename')">
                     <div class="InfoContent" v-dompurify-html="InputBarStatus['PlayerSaveName']['InfoContent']"></div>
                     <div class="LoadSaveList" v-if="GameFileList['save'].length>0">
-                        <div class="SaveFileItem" v-for="(_c,_i) in GameFileList['save']" :key="`${_i}-SaveFilelist`" @click="LoadGameFromSaveFile(_c)" @touchstart="StartDeleteAnimation(_i)" @touchend="CancelDeleteAnimation(_i)">
+                        <div class="SaveFileItem" v-for="(_c,_i) in GameFileList['save']" :key="`${_i}-SaveFilelist`" @click="LoadGameFromSaveFile(_c)" @touchstart="StartDeleteAnimation(_i)" @mousedown="StartDeleteAnimation(_i)" @touchend="CancelDeleteAnimation(_i)" @mouseup="CancelDeleteAnimation(_i)">
                             <div class="DeleteAnimationHolder" :class="{deleting:DeleteAnimationController['save'][_i]}"></div>
                             <div class="Context">
                                 {{ `${_i}-${_c}` }}
@@ -23,35 +23,32 @@
                 <div class="ChooseGender" v-dompurify-html='$t("_tab_create_character_HelloPage_ChooseGender")'>
                 </div>
                 <div class="GenderSelector">
-                    <DysSelector @on-selected="OnGenderSelectedHandler" @on-canceled="OnGenderCanceledHandler" :max-allow-selection="1" :selector-props="PageComponentsManager.GenderSelectorList"></DysSelector>
+                    <DysSelector :-translator="$t" @on-selected="OnGenderSelectedHandler" @on-canceled="OnGenderCanceledHandler" :max-allow-selection="1" :selector-props="PageComponentsManager.GenderSelectorList"></DysSelector>
                     <div class="WraningMessage" v-dompurify-html="PageStateManager.GenderSelectorWarningMessage"></div>
                 </div>
             </div>
             <div class="Wrapper" :class="{show:UserInputManager.InputIndex==2,prev:UserInputManager.getPrev()==2,next:UserInputManager.getNext()==2,backward:PageStateManager.isBackWard,forward:!PageStateManager.isBackWard,hide:isElementHide(2)}">
-                <div class="RangeBar">
-                    <div class="RangeName" v-dompurify-html="$t('_general_ATK')"></div>
-                    <div class="Bar"><DysRange :min-range="-4" :max-range="4" v-model:now-number="Global_BasicPlayerData.PlayerStatus.ATK"></DysRange></div>
-                </div>
-                <div class="RangeBar">
-                    <div class="RangeName" v-dompurify-html="$t('_general_DEF')"></div>
-                    <div class="Bar"><DysRange :min-range="-4" :max-range="4" v-model:now-number="Global_BasicPlayerData.PlayerStatus.DEF"></DysRange></div>
-                </div>
-                <div class="RangeBar">
-                    <div class="RangeName" v-dompurify-html="$t('_general_MOV')"></div>
-                    <div class="Bar"><DysRange :min-range="-4" :max-range="4" v-model:now-number="Global_BasicPlayerData.PlayerStatus.MOV"></DysRange></div>
+                <div class="RangeBar" v-for="(range_item,range_index) in PlayerModifyStatusList" :key="`Status-${range_index}`">
+                    <div class="RangeName" v-dompurify-html="$t(range_item['text'])"></div>
+                    <div class="Bar" v-if="typeof (Global_BasicPlayerData.PlayerStatus as Record<string,any>)[range_item['modify-at']] !='undefined'">
+                        <DysRange :-translator="$t" :min-range="range_item['min-range']" :gap="range_item['gap']" :max-range="range_item['max-range']" v-model:now-number="(Global_BasicPlayerData.PlayerStatus as Record<string,any>)[range_item['modify-at']]"></DysRange>
+                    </div>
+                    <div class="Bar" v-else>
+                        Err: Not A Value:"PlayerStatus.{{ range_item['modify-at'] }}"
+                    </div>
                 </div>
             </div>
             <div class="Wrapper HasSelector" :class="{show:UserInputManager.InputIndex==3,prev:UserInputManager.getPrev()==3,next:UserInputManager.getNext()==3,backward:PageStateManager.isBackWard,forward:!PageStateManager.isBackWard,hide:isElementHide(3)}">
                 <div class="CommonCard">
                     <div class="DescribeFact">
+                        <p v-dompurify-html="$t('_tab_choose_start_StartPage_Line0')"></p>
                         <p v-dompurify-html="$t('_tab_choose_start_StartPage_Line1')"></p>
                         <p v-dompurify-html="$t('_tab_choose_start_StartPage_Line2')"></p>
-                        <p v-dompurify-html="$t('_tab_choose_start_StartPage_Line3')"></p>
                         <p v-if="UserInputManager.PlayerBornIntro" v-dompurify-html="UserInputManager.PlayerBornIntro"></p>
                     </div>
                 </div>
                 <div class="CommonSelector">
-                        <DysSelector @on-selected="OnBornSelectedHandler" @on-canceled="OnBornCanceledHandler" :max-allow-selection="1" :selector-props="PageComponentsManager.BornSelectorList"></DysSelector>
+                        <DysSelector :-translator="$t" @on-selected="OnBornSelectedHandler" @on-canceled="OnBornCanceledHandler" :max-allow-selection="1" :selector-props="PageComponentsManager.BornSelectorList"></DysSelector>
                         
                         <div class="WraningMessage" v-dompurify-html="PageStateManager.BornSelectorWarningMessage"></div>
                 </div>
@@ -76,7 +73,8 @@ import DysSelector from '@/components/DysSelector.vue';
 import DysRange from '@/components/DysRange.vue';
 import GenderList from '@/resources/game/born/GenderList.json';
 import BornList from '@/resources/game/born/PlayerAllowBorn.json';
-import { reactive} from 'vue';
+import PlayerModifyStatusList from '@/resources/game/born/PlayerModifyStatus.json';
+import { reactive } from 'vue';
 import router from '@/router';
 let GameFileList=reactive(JSON.parse(localStorage.getItem("GameSaveFiles") || '{"save":[]}') as Record<string,any>);
 let DeleteAnimationController:Record<string,any>=reactive({"save":[]});
@@ -84,9 +82,6 @@ let DeleteAnimationTimeOut=-1;
 for(const _ in GameFileList["save"]){
     DeleteAnimationController[_]=false;
 }
-// const popItemFromArray=(item:any,arr:Array<any>)=>{
-//     return arr.slice(0,arr.indexOf(item)).concat(arr.slice(arr.indexOf(item)+1));
-// }
 const popItemByIndex=(index:number,arr:Array<any>)=>{
     return arr.slice(0,index).concat(arr.slice(index+1));
 }
@@ -113,7 +108,7 @@ const CancelDeleteAnimation=(index:number):void=>{
     }
 }
 const GameData=useGameMainStorage();
-const { Global_BasicPlayerData,indexMap,MenuData,GameMap,GameNpc, $t,effectParser }=GameData;
+const { Global_BasicPlayerData,TabAfterGame,indexMap,MenuData,GameMap,GameNpc, $t,effectParser }=GameData;
 const GenderListParser=(ori:Array<Record<string,any>>):Array<Record<string,any>>=>{
     const _result:Array<Record<string,any>>=[];
     for(const i in ori){
@@ -121,7 +116,7 @@ const GenderListParser=(ori:Array<Record<string,any>>):Array<Record<string,any>>
             text:ori[i].text,
             icon:ori[i].icon,
             value:i,
-            callback:()=>{return;},
+            callback:()=>{return;}
         }
         if(ori[i]["effect"]){
             _t.callback=effectParser(ori[i]["effect"]);
@@ -137,7 +132,7 @@ const BornListParser=(ori:Array<Record<string,any>>):Array<Record<string,any>>=>
             text:ori[i].text,
             icon:ori[i].icon,
             value:i,
-            callback:()=>{return;},
+            callback:()=>{return;}
         }
         if(ori[i]["effect"]){
             _t.callback=effectParser(ori[i]["effect"]);
@@ -222,22 +217,7 @@ const LoadGameFromSaveFile=(SaveFileName:string):void=>{
     for(const i in _savedata){
         (Global_BasicPlayerData as Record<string,any>)[i]=_savedata[i];
     }
-    MenuData.MenuElement=[{
-            _icon:"M304 128a80 80 0 1 0 -160 0 80 80 0 1 0 160 0zM96 128a128 128 0 1 1 256 0A128 128 0 1 1 96 128zM49.3 464H398.7c-8.9-63.3-63.3-112-129-112H178.3c-65.7 0-120.1 48.7-129 112zM0 482.3C0 383.8 79.8 304 178.3 304h91.4C368.2 304 448 383.8 448 482.3c0 16.4-13.3 29.7-29.7 29.7H29.7C13.3 512 0 498.7 0 482.3z",
-            _text:"_tab_Main"
-        },
-        {
-            _icon:"M304 128a80 80 0 1 0 -160 0 80 80 0 1 0 160 0zM96 128a128 128 0 1 1 256 0A128 128 0 1 1 96 128zM49.3 464H398.7c-8.9-63.3-63.3-112-129-112H178.3c-65.7 0-120.1 48.7-129 112zM0 482.3C0 383.8 79.8 304 178.3 304h91.4C368.2 304 448 383.8 448 482.3c0 16.4-13.3 29.7-29.7 29.7H29.7C13.3 512 0 498.7 0 482.3z",
-            _text:"_tab_CheckSelfStatus"
-        },
-        {
-            _icon:"M304 128a80 80 0 1 0 -160 0 80 80 0 1 0 160 0zM96 128a128 128 0 1 1 256 0A128 128 0 1 1 96 128zM49.3 464H398.7c-8.9-63.3-63.3-112-129-112H178.3c-65.7 0-120.1 48.7-129 112zM0 482.3C0 383.8 79.8 304 178.3 304h91.4C368.2 304 448 383.8 448 482.3c0 16.4-13.3 29.7-29.7 29.7H29.7C13.3 512 0 498.7 0 482.3z",
-            _text:"_tab_Storage"
-        },
-        {
-            _icon:"M304 128a80 80 0 1 0 -160 0 80 80 0 1 0 160 0zM96 128a128 128 0 1 1 256 0A128 128 0 1 1 96 128zM49.3 464H398.7c-8.9-63.3-63.3-112-129-112H178.3c-65.7 0-120.1 48.7-129 112zM0 482.3C0 383.8 79.8 304 178.3 304h91.4C368.2 304 448 383.8 448 482.3c0 16.4-13.3 29.7-29.7 29.7H29.7C13.3 512 0 498.7 0 482.3z",
-            _text:"_tab_Equipment"
-        }];
+    MenuData.MenuElement=TabAfterGame;
     for(const i of MenuData.MenuElement) (indexMap as Array<string>).push(i["_text"]);
     router.push("./main")
 }
@@ -245,28 +225,15 @@ const FinalPlayerCreateAction=():void=>{
     //trigger
     if(Global_BasicPlayerData.PlayerBorn!=-1){
         PageComponentsManager.GenderSelectorList[Global_BasicPlayerData.PlayerGender].callback();
+        PageComponentsManager.BornSelectorList[Global_BasicPlayerData.PlayerBorn].callback();
         Global_BasicPlayerData.PlayerLocate="10000";
 
-        MenuData.MenuElement=[{
-            _icon:"M304 128a80 80 0 1 0 -160 0 80 80 0 1 0 160 0zM96 128a128 128 0 1 1 256 0A128 128 0 1 1 96 128zM49.3 464H398.7c-8.9-63.3-63.3-112-129-112H178.3c-65.7 0-120.1 48.7-129 112zM0 482.3C0 383.8 79.8 304 178.3 304h91.4C368.2 304 448 383.8 448 482.3c0 16.4-13.3 29.7-29.7 29.7H29.7C13.3 512 0 498.7 0 482.3z",
-            _text:"_tab_Main"
-        },
-        {
-            _icon:"M304 128a80 80 0 1 0 -160 0 80 80 0 1 0 160 0zM96 128a128 128 0 1 1 256 0A128 128 0 1 1 96 128zM49.3 464H398.7c-8.9-63.3-63.3-112-129-112H178.3c-65.7 0-120.1 48.7-129 112zM0 482.3C0 383.8 79.8 304 178.3 304h91.4C368.2 304 448 383.8 448 482.3c0 16.4-13.3 29.7-29.7 29.7H29.7C13.3 512 0 498.7 0 482.3z",
-            _text:"_tab_CheckSelfStatus"
-        },
-        {
-            _icon:"M304 128a80 80 0 1 0 -160 0 80 80 0 1 0 160 0zM96 128a128 128 0 1 1 256 0A128 128 0 1 1 96 128zM49.3 464H398.7c-8.9-63.3-63.3-112-129-112H178.3c-65.7 0-120.1 48.7-129 112zM0 482.3C0 383.8 79.8 304 178.3 304h91.4C368.2 304 448 383.8 448 482.3c0 16.4-13.3 29.7-29.7 29.7H29.7C13.3 512 0 498.7 0 482.3z",
-            _text:"_tab_Storage"
-        },
-        {
-            _icon:"M304 128a80 80 0 1 0 -160 0 80 80 0 1 0 160 0zM96 128a128 128 0 1 1 256 0A128 128 0 1 1 96 128zM49.3 464H398.7c-8.9-63.3-63.3-112-129-112H178.3c-65.7 0-120.1 48.7-129 112zM0 482.3C0 383.8 79.8 304 178.3 304h91.4C368.2 304 448 383.8 448 482.3c0 16.4-13.3 29.7-29.7 29.7H29.7C13.3 512 0 498.7 0 482.3z",
-            _text:"_tab_Equipment"
-        }];
+        MenuData.MenuElement=TabAfterGame;
         for(const i of MenuData.MenuElement) (indexMap as Array<string>).push(i["_text"]);
         Global_BasicPlayerData["GameOnMap"]=MapAndNPCLoader(GameMap)!;
         Global_BasicPlayerData["GameOnNpcs"]=MapAndNPCLoader(GameNpc)!;
         Global_BasicPlayerData.PlayerLocateDisplay=$t((Global_BasicPlayerData.GameOnMap as Record<string,any>)[Global_BasicPlayerData.PlayerLocate]["name"]);
+        //I forget to check if there has already a same name save;
         localStorage.setItem('_MUDGAMESAVEDATA_'+Global_BasicPlayerData.PlayerSaveName,JSON.stringify(Global_BasicPlayerData));
         GameFileList["save"]!.push(Global_BasicPlayerData.PlayerSaveName);
         localStorage.setItem("GameSaveFiles",JSON.stringify(GameFileList));
@@ -296,6 +263,7 @@ const UserInputManager=reactive({
     PlayerSaveName:"",
     PlayerBornIntro:"",
 });
+
 const isElementHide=(index:number):boolean=>{
     return (UserInputManager.InputIndex!=index && UserInputManager.getNext()!=index && UserInputManager.getPrev()!=index)
 }

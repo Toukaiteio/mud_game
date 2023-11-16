@@ -1,20 +1,25 @@
 <template>
   <div class="mobile" @contextmenu.prevent>
+    <div class="VersionDisplayer">
+      {{ Global_BasicPlayerData.GameVersion }}
+    </div>
     <div class="MainWrapper">
-      <div class="Displayer">
+
           <router-view v-slot="{ Component }">
-            <transition name="fade">
-              <component :is="Component" />
+            <transition name="fade" mode="out-in">
+              <div class="Displayer" :key="$route.path"> <component :is="Component" /> </div>
             </transition>
           </router-view>
-      </div>
       <div class="Menu">
-        <DysMenu :menuprops="MenuData.MenuElement" v-model:selecting-item="Global_BasicPlayerData.MenuSelecting" ></DysMenu>
+        <DysMenu :-translator="$t" :menuprops="MenuData.MenuElement" v-model:selecting-item="Global_BasicPlayerData.MenuSelecting"></DysMenu>
       </div>
       <div class="SecondaryMenu" :class="{PopUp:Global_BasicPlayerData.MenuSelecting>0,Hidden:Global_BasicPlayerData.MenuSelecting==0}">
         <!-- Display menu in column -->
         <div class="MenuContainer">
-          <DysMenuSecondary :menuprops="SwitchScondaryMenu(indexMap[Global_BasicPlayerData.MenuSelecting])"></DysMenuSecondary>
+          <DysMenuSecondary :-translator="$t" :menuprops="SwitchScondaryMenu(indexMap[Global_BasicPlayerData.MenuSelecting])"></DysMenuSecondary>
+        </div>
+        <div class="CloseFunctionHolder" @click="Global_BasicPlayerData.MenuSelecting=0;">
+
         </div>
       </div>
     </div>
@@ -27,16 +32,34 @@
 import DysMenu from './components/DysMenu.vue';
 import DysMenuSecondary from './components/DysMenuSecondary.vue';
 import PlayerDefaultSetting from '@/resources/game/born/DefaultPlayerStatus.json'
+import SubMenuElements from '@/resources/game/page/SubMenuElements.json'
 import { useGameMainStorage } from './utils/store';
+import { ModInitializer } from '@/resources/game/events/ModInitializer';
 const initialData=useGameMainStorage();
 
 for(const i in PlayerDefaultSetting){
-  //I just too lazy to write a new interface.Maybe someday I'll write that.
+  //I'm too lazy to write a new interface.Maybe someday I'll write it.
   (initialData as Record<string,any>)[i]=(PlayerDefaultSetting as Record<string,any>)[i];
 }
-const { indexMap,MenuData,Global_BasicPlayerData }=initialData;
+initialData.InitGameVersion();
+(initialData.MenuData as Record<string,any>)["SecondaryMenuElement"]=SubMenuElements;
+const _id=ModInitializer(initialData);
+for(const i in _id){
+  (initialData["LoadedModFunction"] as Record<string,any>)[`#$MOD_HOLD_${i}`]=_id[i];
+}
+const { $t,indexMap,MenuData,Global_BasicPlayerData }=initialData;
+const MenuItemDataParser=(OriMenuJson:Array<any>)=>{
+  for(const i of OriMenuJson){
+    for(const j in i){
+      if(typeof i[j]=='string' && typeof ((initialData["LoadedModFunction"] as Record<string,any>)[i[j]]) != 'undefined'){
+        i[j]=(initialData["LoadedModFunction"] as Record<string,any>)[i[j]]();
+      }
+    }
+  }
+  return OriMenuJson;
+}
 const SwitchScondaryMenu=(id:string)=>{
-  return (MenuData.SecondaryMenuElement as Record<string,any>)[id] || [];
+  return MenuItemDataParser((MenuData.SecondaryMenuElement as Record<string,any>)[id] || []);
 }
 </script>
 <style lang="scss">
@@ -53,6 +76,13 @@ $TabBarHeight:55px;
   padding: 0;
   box-sizing: border-box;
   font-family: 'Times New Roman', Times, serif;
+}
+.VersionDisplayer{
+  position: absolute;
+  right: 0;
+  top: 0;
+  z-index: 1000;
+  color: $BaseSecondaryColor4;
 }
 .InputerWrapper{
   input.GameInputer{
@@ -128,10 +158,12 @@ $TabBarHeight:55px;
     .SecondaryMenu{
       height: 100%;
       width: 100%;
-      padding-right: 140px;
+      // padding-right: 140px;
+      display: flex;
       padding-top: 55px;
       transition: background 0.6s;
       position: absolute;
+      z-index: 20;
       top: -55px;
       left: 0;
       .MenuContainer{
@@ -144,6 +176,10 @@ $TabBarHeight:55px;
         border-bottom-right-radius: 8px;
         overflow: hidden;
         transition: transform 0.6s,opacity 1s;
+      }
+      .CloseFunctionHolder{
+        height: 100%;
+        width: 200px;
       }
       &.Hidden{
         background: transparent;

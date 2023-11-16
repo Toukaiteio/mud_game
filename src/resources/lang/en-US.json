@@ -1,6 +1,7 @@
 {
     "langType":"en-US",
     "langDisplay":"English(US)",
+    "ATTENTION":"This en-US.json has outdated,You cant directly use it.",
     "lang":{
         "_tab_create_character":"Create Your Charater",
         "_gameinputer_playername":"Your Name Here",

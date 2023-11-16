@@ -1,18 +1,33 @@
 [
     {
         "text":"_tab_choose_start_StartPage_ChooseBorn0",
-        "icon":null
+        "icon":null,
+        "effect":{
+            "modify":{
+                "_TAG_FARMER":1
+            }
+        },
+        "COMMENT":"Add an interceptor in the future to moniter and modify any status change"
     },
     {
         "text":"_tab_choose_start_StartPage_ChooseBorn1",
-        "icon":null
+        "icon":null,
+        "effect":{
+            "modify":{"_TAG_RULER":1}
+        }
     },
     {
         "text":"_tab_choose_start_StartPage_ChooseBorn2",
-        "icon":null
+        "icon":null,
+        "effect":{
+            "modify":{"_TAG_RICH":1}
+        }
     },
     {
         "text":"_tab_choose_start_StartPage_ChooseBorn3",
-        "icon":null
+        "icon":null,
+        "effect":{
+            "modify":{"_TAG_SURVIVOR":1}
+        }
     }
 ]

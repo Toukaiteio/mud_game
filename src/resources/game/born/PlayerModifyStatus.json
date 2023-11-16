@@ -1,0 +1,19 @@
+[{
+    "text":"_general_ATK",
+    "modify-at":"ATK",
+    "min-range":-4,
+    "max-range":4,
+    "gap":1
+},{
+    "text":"_general_DEF",
+    "modify-at":"DEF",
+    "min-range":-4,
+    "max-range":4,
+    "gap":1
+},{
+    "text":"_general_MOV",
+    "modify-at":"MOV",
+    "min-range":-4,
+    "max-range":4,
+    "gap":1
+}]

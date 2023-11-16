@@ -1,8 +1,10 @@
 {
     "100":{
-        "name":"_npc_orphanage_owner",
+        "COMMENT":"I put name under default param so it was chagable,otherwise it was constant.",
         "default":{
-            "fav":-5
+            "name":"_npc_unknown_place_man",
+            "fav":-5,
+            "usingDialog":"_npc_unknown_place_man"
         }
     }
 }

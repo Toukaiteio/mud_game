@@ -1,10 +1,10 @@
 {
     "10000":{
-        "name":"_location_orphanage",
-        "comment":"Using Event To effect Player instead of using effect on a location",
         "default":{
+            "name":"_location_common_unknown",
             "linked":{"10001":{ "cost":2 }},
             "hasNPC":["100"],
+            "intro":"_location_unknown_born_intro",
             "functions":["REST","TALK#100"],
             "effect":{
                 "add":{
@@ -20,11 +20,12 @@
         }
     },
     "10001":{
-        "name":"_location_orphanage_outside",
         "default":{
+            "name":"_location_unknown_born_north1",
+            "intro":"_location_unknown_born_north1_intro",
             "linked":{ "10000":{ "cost" : 2 } },
             "hasNPC":[],
-            "functions":["PLANT"],
+            "functions":[],
             "effect":{
                 "add":{
                     "condition":{
@@ -33,10 +34,16 @@
                             "condition-true":0.08
                         }
                     }
+                },
+                "modify":{
+                    "condition":{
+                        "ALLOWPLANT":{
+                            "has":false,
+                            "condition-true":1
+                        }
+                    }
                 }
             }
-        }
-        
-        
+        }    
     }
 }

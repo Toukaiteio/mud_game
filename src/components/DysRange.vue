@@ -22,15 +22,23 @@ const _gprop=defineProps({
         type:Number,
         default:3,
     },
+    gap:{
+        type:Number,
+        default:1
+    },
     nowNumber:{
         type:Number,
         default:0,
+    },
+    Translator:{
+        type:Function,
+        default:(text:string)=>{return text;}
     }
 });
 
 const ValueState=ref((()=>{
     const _vA=[];
-    for(let i=_gprop.minRange;i<=_gprop.maxRange;i++) _vA.push(i);
+    for(let i=_gprop.minRange;i<=_gprop.maxRange;i+=_gprop.gap) _vA.push(i>_gprop.maxRange?_gprop.maxRange:i);
     return _vA})() || [0])
 // console.log(ValueState);
 let nowValPos=ValueState.value.indexOf(_gprop.nowNumber);

@@ -1,6 +1,21 @@
 {
     "REST":{
         "text":"_function_REST",
+        "cost":30,
+        "COMMENT":"factor will affect cost increase rate.default was 1.",
+        "factor":{
+            "#multiply":{
+                "PlayerStatus.HP":{
+                    "#multiplay":0.02
+                }
+            }
+        },
+        "condition":{
+            "HAVENT_REST_YET":{
+                "has":true
+            }
+        },
+        "action-failed-text":"_function_event_have_already_rested",
         "action":{
             "condition":{
                 "FUNCTION_REST_GOOD":{
@@ -10,12 +25,12 @@
                     "chance":15,
                     "affection":{
                         "PlayerStatus.HAPPY":{
-                            "#multiply":0.2,
+                            "#multiply":0.8,
                             "#max":75,
                             "#type":1
                         },
                         "PlayerStatus.HP":{
-                            "#multiply":0.01,
+                            "#multiply":0.1,
                             "#max":15,
                             "#type":1
                         }
@@ -50,6 +65,7 @@
     },
     "PLANT":{
         "text":"_function_PLANT",
+        "cost":10,
         "action":{
             "condition":{
                 "FUNCTION_ALLOW_PLANT":{
@@ -71,6 +87,7 @@
     },
     "TALK":{
         "text":"#PROGRAM_HOLD_TALK_FUNCTION",
+        "cost":2,
         "requireVal":{
             "TargetID_TALK":{
                 "Slot":1

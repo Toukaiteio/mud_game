@@ -1,0 +1,41 @@
+{
+    "_npc_unknown_place_man":{
+        "_npc_dialog_100_dialog_at_fav_0":{
+            "condition":{
+                "GameOnNpcs.100.fav":{
+                    "equ":-5
+                },
+                "TalkedTo_Npc100_Times":{
+                    "has":false
+                }
+            },
+            "effect":{
+                "add":{
+                    "GameOnNpcs.100.fav":1
+                },
+                "modify":{
+                    "TalkedTo_Npc100_Times":1
+                }
+            }
+        },
+        "_npc_dialog_100_dialog_at_fav_1":{
+            "condition":{
+                "GameOnNpcs.100.fav":{
+                    "equ":-4
+                },
+                "TalkedTo_Npc100_Times":{
+                    "has":true
+                },
+                "HAVENT_REST_YET":{
+                    "has":false
+                }
+            },
+            "effect":{
+                "add":{
+                    "TalkedTo_Npc100_Times":1
+                }
+            }
+        }
+
+    }
+}

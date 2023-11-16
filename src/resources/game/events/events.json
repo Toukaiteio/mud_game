@@ -29,24 +29,6 @@
         }
     },
     {
-        "text":"_event_new_day_event",
-        "condition":{
-            "FIRSTTURNINADAY":{
-                "has":true
-            }
-        },
-        "effect":{
-            "remove":{
-                "HAVE_A_NORMAL_REST":1,
-                "HAVE_A_GOOD_REST":1,
-                "HAVE_A_BAD_REST":1
-            },
-            "modify":{
-                "HAVENT_REST_YET":1
-            }
-        }
-    },
-    {
         "text":"_event_test",
         "useVal":{
             "PlayerStatus.CASH":"v1_testEvent",

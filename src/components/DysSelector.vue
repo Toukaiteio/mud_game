@@ -1,17 +1,15 @@
 <template>
     <div class="dys_Selector">
-      <div class="dys_Selector_Item" v-for="(_c1,_i1) in selectorProps" :key="_i1" :class="{Selecting:nowSelecting[_i1]}" @click="NewSelection(_c1,_i1);">
+      <div class="dys_Selector_Item" v-for="(_c1,_i1) in (selectorProps as Array<any>)" :key="_i1" :class="{Selecting:nowSelecting[_i1]}" @click="NewSelection(_c1,_i1);">
         <svg class="_icon" v-if="_c1.icon" xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 448 512">
           <path :d="_c1.icon"></path>
         </svg>
-        <div class="context" v-dompurify-html="$t(_c1.text)"></div>
+        <div class="context" v-dompurify-html="_gprop.Translator(_c1.text)"></div>
       </div>
     </div>
 </template>
 <script lang="ts" setup>
 import { reactive,defineEmits,defineProps } from 'vue';
-import { useGameMainStorage } from '@/utils/store';
-const { $t } = useGameMainStorage();
 interface SelectorItem{
     text:string,
     icon:string,
@@ -31,6 +29,10 @@ const _gprop=defineProps({
     limitAllowSelection:{
         type:Number,
         default:-1
+    },
+    Translator:{
+        type:Function,
+        default:(text:string)=>{return text;}
     }
 });
 let Selected=0;

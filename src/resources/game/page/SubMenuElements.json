@@ -1,0 +1,12 @@
+{
+    "_tab_CheckSelfStatus":[{
+        "type":"TextBox",
+        "text":"_scondarymenu_Self_Status_Displayer"
+    },{
+        "type":"TagBox",
+        "title":"_secondarymenu_Tagbox_Title",
+        "tags":"#$MOD_HOLD_GetPlayerTags"
+    }],
+    "_tab_Storage":[],
+    "_tab_Equipment":[]
+}
