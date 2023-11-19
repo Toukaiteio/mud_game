@@ -21,6 +21,7 @@ const LList:Record<string,LanguageType>={
     01.01.0=0;
     1、3、5、7、8 (31*5) 2 (29) 4、6、9 (30*2+5)
 */ 
+// NEVER STORE ANY FUNCTION TYPE DATA IN Global_BasicPlayerData!!
 type conditionAccept=number|string|boolean|Record<string,number>;
 export const useGameMainStorage = defineStore('game_data',{
     state:()=>{
@@ -41,7 +42,71 @@ export const useGameMainStorage = defineStore('game_data',{
                     MOV:0,
                     HP:100,
                     HAPPY:50,
-                    CASH:80
+                    CASH:80,
+                    equipment:[
+                        {
+                            ATK:0,
+                            DEF:0,
+                            MOV:0,
+                            HP:0,
+                            HAPPY:0
+                        },{
+                            ATK:0,
+                            DEF:0,
+                            MOV:0,
+                            HP:0,
+                            HAPPY:0
+                        },{
+                            ATK:0,
+                            DEF:0,
+                            MOV:0,
+                            HP:0,
+                            HAPPY:0
+                        },{
+                            ATK:0,
+                            DEF:0,
+                            MOV:0,
+                            HP:0,
+                            HAPPY:0
+                        },{
+                            ATK:0,
+                            DEF:0,
+                            MOV:0,
+                            HP:0,
+                            HAPPY:0
+                        },{
+                            ATK:0,
+                            DEF:0,
+                            MOV:0,
+                            HP:0,
+                            HAPPY:0
+                        },{
+                            ATK:0,
+                            DEF:0,
+                            MOV:0,
+                            HP:0,
+                            HAPPY:0
+                        },{
+                            ATK:0,
+                            DEF:0,
+                            MOV:0,
+                            HP:0,
+                            HAPPY:0
+                        },{
+                            ATK:0,
+                            DEF:0,
+                            MOV:0,
+                            HP:0,
+                            HAPPY:0
+                        },
+                    ],
+                    equipment_status_modifier:{
+                        ATK:1,
+                        DEF:1,
+                        MOV:1,
+                        HP:1,
+                        HAPPY:1
+                    }
                 },
                 ThisRoundEvent:[],
                 PlayerLocationAround:[],
@@ -53,10 +118,15 @@ export const useGameMainStorage = defineStore('game_data',{
                 PlayerSaveName:"",
                 PlayerAllowMove:true,
                 PlayerTags:{},
-                OtherStorage:{},
+                OtherStorage:{
+                    PlayerBackPack:{
+
+                    }
+                },
                 GameOnMap:{},
                 GameOnNpcs:{},
-                GameVersion:{},
+                GameOnItems:{},
+                GameVersion:"",
                 PlayerActionStatus:[],
                 isPlayerActionLocking:false,
                 MenuSelecting:0,
@@ -742,6 +812,12 @@ export const useGameMainStorage = defineStore('game_data',{
                     }
                 }
             }
-        }
+        },
+        // interceptor_register(){
+
+        // },
+        // interceptor_destorier(){
+
+        // }
     }
 })

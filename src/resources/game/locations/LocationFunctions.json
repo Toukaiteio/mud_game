@@ -11,7 +11,7 @@
             }
         },
         "condition":{
-            "HAVENT_REST_YET":{
+            "_TAG_HAVENT_REST_YET":{
                 "has":true
             }
         },
@@ -19,7 +19,7 @@
         "action":{
             "condition":{
                 "FUNCTION_REST_GOOD":{
-                    "HAVENT_REST_YET":{
+                    "_TAG_HAVENT_REST_YET":{
                         "has":true
                     },
                     "chance":15,
@@ -37,7 +37,7 @@
                     }
                 },
                 "FUNCTION_REST_NORMAL":{
-                    "HAVENT_REST_YET":{
+                    "_TAG_HAVENT_REST_YET":{
                         "has":true
                     },
                     "chance":25,
@@ -55,7 +55,7 @@
                     }
                 },
                 "FUNCTION_REST_BAD":{
-                    "HAVENT_REST_YET":{
+                    "_TAG_HAVENT_REST_YET":{
                         "has":true
                     },
                     "chance":100

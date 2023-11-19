@@ -43,6 +43,10 @@
         "_TAG_RULER":"统治者",
         "_TAG_RICH":"富人",
         "_TAG_SURVIVOR":"生存专家",
+        "_TAG_HAVENT_REST_YET":"暂未休息",
+        "_TAG_HAVE_A_GOOD_REST":"休息良好",
+        "_TAG_HAVE_A_NORMAL_REST":"休息一般",
+        "_TAG_HAVE_A_BAD_REST":"休息较差",
         "_location_common_unknown": "未知之地",
         "_location_unknown_born_intro":"一片陌生的地方",
         "_location_unknown_born_north1": "未知之地北方",
@@ -76,6 +80,8 @@
         "_function_event_start_a_new_day":"<font color='blue'>新的一天开始了</font>",
         "_dialog_general_dont_have_a_dialog":"<replace><replace>GameOnNpcs.<replace>PlayerTags.TALKINGTO</replace>.name</replace></replace>，似乎对你没什么想说的。",
         "_npc_dialog_100_dialog_at_fav_0":"你看起来累坏了，什么？你问我这里是哪里，说来话长，你应该先休息一下！",
-        "_npc_dialog_100_dialog_at_fav_1":"你现在看起来精神焕发，这里是。。（想不出活）"
-    } 
+        "_npc_dialog_100_dialog_at_fav_1":"你现在看起来精神焕发，这里是。。（想不出活）",
+        "_item_default_not_found_name":"<font color='red'>Err</font>:Item param <font color='yellow'>'name'</font> were not defined!",
+        "_item_default_not_found_desc":"<font color='red'>Err</font>:Item param <font color='yellow'>'desc'</font> were not defined!"
+    }
 }

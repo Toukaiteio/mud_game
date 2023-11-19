@@ -1,0 +1,27 @@
+{
+    "_item_woodensword":{
+        "COMMENT":"if is_divided is false when the item was given to player will automatically add 'count' param to store its amount",
+        "COMMENT1":"if your item's params all static please keep is_divided false",
+        "COMMENT2":"params in itemDefault.json will automatically inject to each item before them were parsered.",
+        "COMMENT4":"when item was given to player will get a uuid in 'uuid' param",
+        "name":"_item_woodensword",
+        "desc":"_item_woodensword_desc",
+        "equipslot":0,
+        "durability":300,
+        "is_divided":true,
+        "COMMENT5":"may occur something when some status was multiplied.",
+        "effect-equiped":{
+            "add":{
+                "PlayerStatus.equipment.0.ATK":2,
+                "PlayerStatus.equipment.0.DEF":1
+            }
+        },
+        "effect-unequiped":{
+            "minus":{
+                "PlayerStatus.equipment.0.ATK":2,
+                "PlayerStatus.equipment.0.DEF":1
+            }
+        },
+        "COMMENT3":"You can custom your own params and use interceptor or effect to read the value"
+    }
+}

@@ -1,34 +1,5 @@
-[
-    {
-        "text":"_event_player_cheat_in_the_game",
-        "useVal":{
-            "PlayerStatus.HP":"v1_cheater",
-            "PlayerStatus.DEF":"v2_cheater",
-            "PlayerStatus.MOV":"v3_cheater",
-            "PlayerStatus.ATK":"v4_cheater",
-            "PlayerStatus.HAPPY":"v5_cheater",
-            "PlayerStatus.CASH":"v6_cheater"
-        },
-        "condition":{
-            "ALWAYSFALSE":{
-                "has":true
-            }
-        },
-        "effect":{
-            "modify":{
-                "PlayerStatus.HP":-10000,
-                "PlayerStatus.DEF":-10000,
-                "PlayerStatus.MOV":-10000,
-                "PlayerStatus.ATK":-10000,
-                "PlayerStatus.HAPPY":-10000,
-                "PlayerStatus.CASH":-10000
-            },
-            "remove":{
-                "ALWAYSFALSE":1
-            }
-        }
-    },
-    {
+{
+    "_event_test":{
         "text":"_event_test",
         "useVal":{
             "PlayerStatus.CASH":"v1_testEvent",
@@ -39,7 +10,9 @@
                 "equ":0
             }
         },
+        "COMMENT":"add selections param to allow let a event pause game、give different effect and create story branches",
         "effect":{
+            "COMMENT":"add trigger param to allow an event to trigger another event immediately",
             "add":{
                 "condition":{
                     "PlayerStatus.CASH":{
@@ -71,4 +44,4 @@
             }
         }
     }
-]
+}

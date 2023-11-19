@@ -28,23 +28,32 @@
 import { useGameMainStorage } from '@/utils/store';
 import GameEventList from '@/resources/game/events/events.json';
 import GameLocationFunctionList from '@/resources/game/locations/LocationFunctions.json';
-import { reactive } from 'vue';
 const { Global_BasicPlayerData,RoundTempValues,actionParser,factorParser,conditionParser,locationEventParser,effectParser,$t }=useGameMainStorage();
 import GameNPCDialog from '@/resources/game/npc/npc_dialog.json';
-// I put Gamenpc dialog here just because I think there are too many things imported in store.ts.
-// const GetEventTimes=():number=>{
-//     return [0,0,1,2,0,0,3,0,2,1,1,1,0,0,1,0,0,1,0,2][Math.round((Math.random()*10000)%20)];
-// }
+// I put Gamenpc dialog here just because I think there are too many things imported in store.ts.So as GameItems
+import ItemDefault from '@/resources/game/items/itemDefault.json';
+import GameItems from '@/resources/game/items/items.json';
+//Load Game Items to Global_BasicPlayerData.GameOnItems.
+for(const i in GameItems){
+    const _new_item=({} as Record<string,any>);
+    for(const j in ItemDefault){
+        _new_item[j]=(ItemDefault as Record<string,any>)[j];
+    }
+    for(const j in (GameItems as Record<string,any>)[i]){
+        _new_item[j]=(GameItems as Record<string,any>)[i][j];
+    }
+    (Global_BasicPlayerData.GameOnItems as Record<string,any>)[i]=_new_item;
+}
 
-// Add Progress Selector Bar - to indicate the progress of an action. √
-// Add Give param in Event - to make event can give player item. * I can use Tag to seize this.
-// Add cost param in Event - to make event time cost can be calculated. √
-// Add cost_factor param in Event - to make event can be affect by some factor. √
-const ScopedPageStateManager=reactive({
-    Global_AllowActionTimes:1,
-    
-    
-})
+// Add Give param in Event - to make event can give player item.
+// Add Weather System.
+// Add a Canvas Engine.
+// Add Sound effect. （ Sound \ BGM ） Separated
+const LocationAcationActor=(oriAction:Record<string,any>):void=>{
+    locationEventParser(oriAction["fun_name"],oriAction["_funcs"])();
+    TimeAddUp(oriAction["fun_name"]["cost"]);
+    if(oriAction["DoFunc"]!="") (PROGRAMHOLDER as Record<string,any>)[oriAction["DoFunc"]](...oriAction["_funcs"].slice(1));
+}
 const generalOnActionHandler=(index:number):void=>{
     const _t_PlayerActionStatus_Accessor=(Global_BasicPlayerData.PlayerActionStatus as Array<any>)[index];
     const ActionCondition=_t_PlayerActionStatus_Accessor["Condition"]?conditionParser(_t_PlayerActionStatus_Accessor["Condition"],undefined,undefined,true,_t_PlayerActionStatus_Accessor["Affection"],true)["_direct_use_result_transer"]:true;
@@ -56,7 +65,7 @@ const generalOnActionHandler=(index:number):void=>{
             if(_t_PlayerActionStatus_Accessor["NowTotal"]+parseFloat((_t_PlayerActionStatus_Accessor["IncreaseRate"]/4).toFixed(3))>=_t_PlayerActionStatus_Accessor["Require"]){
                 //Trigger Effect
                 setTimeout(()=>{
-                    (Global_BasicPlayerData.RoundAllowActions[index] as Record<string,any>)["action"]();
+                    LocationAcationActor((Global_BasicPlayerData.RoundAllowActions[index] as Record<string,any>)["action"]);
                     Global_BasicPlayerData.isPlayerActionLocking=false;
                     _t_PlayerActionStatus_Accessor['ActivateState']=false;
                     _t_PlayerActionStatus_Accessor['NowTotal']=0;
@@ -68,17 +77,11 @@ const generalOnActionHandler=(index:number):void=>{
                 _t_PlayerActionStatus_Accessor["NowTotal"]+=parseFloat((_t_PlayerActionStatus_Accessor["IncreaseRate"]/4).toFixed(3))
             }
         },50);
-        console.log(_t_action_time_counter);
     }else if(!Global_BasicPlayerData.isPlayerActionLocking && !ActionCondition){
         if(_t_PlayerActionStatus_Accessor["ActionFailText"])
             (Global_BasicPlayerData.ThisRoundEvent as Array<string>).push($t(_t_PlayerActionStatus_Accessor["ActionFailText"]));
     }
 }
-// const generalOnSelectHandler=()=>{
-//     ScopedPageStateManager.Global_AllowActionTimes-=1;
-//     ScopedPageStateManager.ToBeExcutedFunctions.push();
-//     NextRound();
-// }
 const SetYearTotalMinute=()=>{
     Global_BasicPlayerData.ThisYearTotalMinutes=(Global_BasicPlayerData.GameYear % 400==0)||(Global_BasicPlayerData.GameYear % 4==0 && Global_BasicPlayerData.GameYear%100 !=0)?527040:525600;
 }
@@ -186,14 +189,13 @@ const MoveTo=(lid:string):void=>{
                 setTimeout(()=>{
                     TimeAddUp(_t_PlayerMoveStatus_Accessor["Require"]);
                     Global_BasicPlayerData.PlayerMoveStatus={};
-                    ScopedPageStateManager.Global_AllowActionTimes=1;
                     Global_BasicPlayerData.PlayerLocate=lid;
                     Global_BasicPlayerData.PlayerLocateDisplay=$t((Global_BasicPlayerData.GameOnMap as Record<string,any>)[Global_BasicPlayerData.PlayerLocate]["name"]);
                     GetMapIntro();
                     //Trigger actionLeave Here
                     if(Global_BasicPlayerData.ToBeExcutedFunctions.length>0)
-                    for(const i of (Global_BasicPlayerData.ToBeExcutedFunctions as Array<()=>void>)){
-                        i();
+                    for(const i of (Global_BasicPlayerData.ToBeExcutedFunctions as Array<any>)){
+                        actionParser(i);
                     }
                     Global_BasicPlayerData.ToBeExcutedFunctions=[];
                     Global_BasicPlayerData.isPlayerActionLocking=false;
@@ -280,14 +282,16 @@ const GetActionList=():void=>{
         const _t_o={
             "text":_t_GLFL[_funcs[0]]["text"],
             "value":i,
-            "action":()=>{
-                locationEventParser(_t_GLFL[_funcs[0]],_funcs)();
-                TimeAddUp(_t_GLFL[_funcs[0]]["cost"] || 1);
-                if(DoFunc!="") (PROGRAMHOLDER as Record<string,any>)[DoFunc](..._funcs.slice(1));
-        }
+            "action":{
+                "fun_name":_t_GLFL[_funcs[0]],
+                "_funcs":_funcs,
+                "cost":_t_GLFL[_funcs[0]]["cost"] || 0,
+                "DoFunc":DoFunc
+            }
         };
+        
         if(_t_GLFL[_funcs[0]]["actionLeave"]){
-            (Global_BasicPlayerData.ToBeExcutedFunctions as Array<()=>void>).push(()=>{actionParser(_t_GLFL[_funcs[0]]["actionLeave"]);})
+            (Global_BasicPlayerData.ToBeExcutedFunctions as Array<any>).push(()=>{_t_GLFL[_funcs[0]]["actionLeave"]})
         }
         (Global_BasicPlayerData.RoundAllowActions as Array<any>).push(_t_o);
         (Global_BasicPlayerData.PlayerActionStatus as Array<any>).push({
@@ -305,15 +309,15 @@ const GetActionList=():void=>{
 const GetRoundEvent=():void=>{
     // console.log(1,GetEventTimes()+(Global_BasicPlayerData.RoundCounter==0?2:0));
     //Trigger All Event
-    for(const j of (GameEventList as Array<Record<string,any>>)){
-        if(conditionParser(j["condition"],undefined,undefined,true)["_direct_use_result_transer"]){
-            if(j["useVal"]){
-                effectParser(j["effect"],j["useVal"],j["text"])();
+    for(const j in (GameEventList as Record<string,any>)){
+        if(conditionParser((GameEventList as Record<string,any>)[j]["condition"],undefined,undefined,true)["_direct_use_result_transer"]){
+            if((GameEventList as Record<string,any>)[j]["useVal"]){
+                effectParser((GameEventList as Record<string,any>)[j]["effect"],(GameEventList as Record<string,any>)[j]["useVal"],(GameEventList as Record<string,any>)[j]["text"])();
             }else{
-                effectParser(j["effect"],undefined,j["text"])();
+                effectParser((GameEventList as Record<string,any>)[j]["effect"],undefined,(GameEventList as Record<string,any>)[j]["text"])();
             }
-            if(j["cost"]){
-                Global_BasicPlayerData._Round_TotalTimeCost+=j["cost"];
+            if((GameEventList as Record<string,any>)[j]["cost"]){
+                Global_BasicPlayerData._Round_TotalTimeCost+=(GameEventList as Record<string,any>)[j]["cost"];
             }
         }
             

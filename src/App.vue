@@ -16,7 +16,7 @@
       <div class="SecondaryMenu" :class="{PopUp:Global_BasicPlayerData.MenuSelecting>0,Hidden:Global_BasicPlayerData.MenuSelecting==0}">
         <!-- Display menu in column -->
         <div class="MenuContainer">
-          <DysMenuSecondary :-translator="$t" :menuprops="SwitchScondaryMenu(indexMap[Global_BasicPlayerData.MenuSelecting])"></DysMenuSecondary>
+          <DysMenuSecondary :key="`${initialData.Global_BasicPlayerData.RoundCounter}-SMenu`" :-translator="$t" :menuprops="SwitchScondaryMenu(indexMap[Global_BasicPlayerData.MenuSelecting])"></DysMenuSecondary>
         </div>
         <div class="CloseFunctionHolder" @click="Global_BasicPlayerData.MenuSelecting=0;">
 
@@ -36,7 +36,7 @@ import SubMenuElements from '@/resources/game/page/SubMenuElements.json'
 import { useGameMainStorage } from './utils/store';
 import { ModInitializer } from '@/resources/game/events/ModInitializer';
 const initialData=useGameMainStorage();
-
+// indexMap[Global_BasicPlayerData.MenuSelecting]
 for(const i in PlayerDefaultSetting){
   //I'm too lazy to write a new interface.Maybe someday I'll write it.
   (initialData as Record<string,any>)[i]=(PlayerDefaultSetting as Record<string,any>)[i];
@@ -49,18 +49,31 @@ for(const i in _id){
 }
 const { $t,indexMap,MenuData,Global_BasicPlayerData }=initialData;
 const MenuItemDataParser=(OriMenuJson:Array<any>)=>{
-  for(const i of OriMenuJson){
-    for(const j in i){
-      if(typeof i[j]=='string' && typeof ((initialData["LoadedModFunction"] as Record<string,any>)[i[j]]) != 'undefined'){
-        i[j]=(initialData["LoadedModFunction"] as Record<string,any>)[i[j]]();
+  const newMenuJson=([] as Array<any>);
+  for(const i in OriMenuJson){
+    newMenuJson.push({});
+    for(const j in OriMenuJson[i]){
+      newMenuJson[i][j]=OriMenuJson[i][j];
+      if(typeof OriMenuJson[i][j]=='string' && OriMenuJson[i][j].slice(0,2)=="#$"){
+        const _t_func=(OriMenuJson[i][j].split("##") as Array<any>);
+        for(const k in _t_func.slice(1)){
+          if(typeof ((initialData["LoadedModFunction"] as Record<string,any>)[_t_func[parseInt(k)+1]]) != 'undefined'){
+            _t_func[parseInt(k)+1]=(initialData["LoadedModFunction"] as Record<string,any>)[_t_func[parseInt(k)+1]]();
+          }
+        }
+        if(typeof ((initialData["LoadedModFunction"] as Record<string,any>)[_t_func[0]]) != 'undefined'){
+          newMenuJson[i][j]=(initialData["LoadedModFunction"] as Record<string,any>)[_t_func[0]](..._t_func.slice(1));
+        }
       }
     }
   }
-  return OriMenuJson;
+  console.log("Loaded Menu",newMenuJson);
+  return newMenuJson;
 }
 const SwitchScondaryMenu=(id:string)=>{
   return MenuItemDataParser((MenuData.SecondaryMenuElement as Record<string,any>)[id] || []);
 }
+// initialData.$subscribe(()=>{ SwitchScondaryMenu(indexMap[Global_BasicPlayerData.MenuSelecting]);initialData.$subscribe(()=>SwitchScondaryMenu(indexMap[Global_BasicPlayerData.MenuSelecting]))})
 </script>
 <style lang="scss">
 $BaseMainColor:#1F242B;

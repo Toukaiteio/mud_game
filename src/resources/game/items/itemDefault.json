@@ -1,0 +1,12 @@
+{
+    "max_overlay":1,
+    "name":"_item_default_not_found_name",
+    "equipslot":-1,
+    "desc":"_item_default_not_found_desc",
+    "is_usable":false,
+    "is_consumable":false,
+    "is_divided":false,
+    "durability":-1,
+    "weight":0.1,
+    "interceptor":{}
+}

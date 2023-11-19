@@ -4,12 +4,12 @@
         "text":"_function_event_start_a_new_day",
         "effect":{
             "remove":{
-                "HAVE_A_NORMAL_REST":1,
-                "HAVE_A_GOOD_REST":1,
-                "HAVE_A_BAD_REST":1
+                "_TAG_HAVE_A_NORMAL_REST":1,
+                "_TAG_HAVE_A_GOOD_REST":1,
+                "_TAG_HAVE_A_BAD_REST":1
             },
             "modify":{
-                "HAVENT_REST_YET":1,
+                "_TAG_HAVENT_REST_YET":1,
                 "FIRSTTURNINNEWDAY":1
             }
         }
@@ -26,10 +26,10 @@
                 "PlayerStatus.HP":30
             },
             "modify":{
-                "HAVE_A_GOOD_REST":1
+                "_TAG_HAVE_A_GOOD_REST":1
             },
             "remove":{
-                "HAVENT_REST_YET":1
+                "_TAG_HAVENT_REST_YET":1
             }
         }
     },
@@ -45,10 +45,10 @@
                 "PlayerStatus.HP":28
             },
             "modify":{
-                "HAVE_A_NORMAL_REST":1
+                "_TAG_HAVE_A_NORMAL_REST":1
             },
             "remove":{
-                "HAVENT_REST_YET":1
+                "_TAG_HAVENT_REST_YET":1
             }
         }
         
@@ -65,10 +65,10 @@
                 "PlayerStatus.HP":8
             },
             "modify":{
-                "HAVE_A_BAD_REST":1
+                "_TAG_HAVE_A_BAD_REST":1
             },
             "remove":{
-                "HAVENT_REST_YET":1
+                "_TAG_HAVENT_REST_YET":1
             }
         }
         

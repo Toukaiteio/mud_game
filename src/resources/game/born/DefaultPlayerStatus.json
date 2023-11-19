@@ -27,7 +27,7 @@
         "PlayerSaveName":"",
         "PlayerAllowMove":true,
         "PlayerTags":{
-            "HAVENT_REST_YET":0
+            "_TAG_HAVENT_REST_YET":0
         },
         "OtherStorage":{},
         "GameOnMap":{},
