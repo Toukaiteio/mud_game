@@ -29,9 +29,14 @@
         "PlayerTags":{
             "_TAG_HAVENT_REST_YET":0
         },
-        "OtherStorage":{},
+        "OtherStorage":{
+            "PlayerBackPack":{
+                
+            }
+        },
         "GameOnMap":{},
         "GameOnNpcs":{},
+        "GameOnItems":{},
         "MenuSelecting":0,
         "GameVersion":{},
         "BaseActionProcessSpeedRate":1,
@@ -39,7 +44,8 @@
         "isPlayerActionLocking":false,
         "ToBeExcutedFunctions":[],
         "_Round_TotalTimeCost":0,
-        "PlayerMoveStatus":{}
+        "PlayerMoveStatus":{},
+        "RoundTempValues":{}
     },
     "MenuData":{
         "MenuElement":[{

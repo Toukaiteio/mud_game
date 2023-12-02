@@ -7,6 +7,7 @@ import _LangOption1 from '@/resources/lang/zh-CN.json';
 import TabAfterGame from '@/resources/game/page/TabAfterGame.json'
 import TabBeforeGame from '@/resources/game/page/TabBeforeGame.json'
 import GameVersion from '@/resources/game/GameVersion.json';
+import GameEventList from '@/resources/game/events/events.json';
 export interface LanguageType{
     langType:string,
     langDisplay:string,
@@ -133,10 +134,11 @@ export const useGameMainStorage = defineStore('game_data',{
                 BaseActionProcessSpeedRate:1,
                 ToBeExcutedFunctions:[], //store action_leave in this. Trigger When MoveTo was called.
                 _Round_TotalTimeCost:0,
-                PlayerMoveStatus:{}
+                PlayerMoveStatus:{},
+                RoundTempValues:{
+                },
             },
-            RoundTempValues:{
-            },
+            GameEventList:GameEventList,
             MenuData:{
                 MenuElement:TabBeforeGame,
                 SecondaryMenuElement:[]
@@ -185,8 +187,8 @@ export const useGameMainStorage = defineStore('game_data',{
             }
             const ori=DataPath.split('.');
             let Accessor:Record<string,any>;
-            if((this.RoundTempValues as Record<string,any>)[ori[0]]){
-                Accessor=this.RoundTempValues;
+            if((this.Global_BasicPlayerData.RoundTempValues as Record<string,any>)[ori[0]]){
+                Accessor=this.Global_BasicPlayerData.RoundTempValues;
             }else{
                 Accessor=this.Global_BasicPlayerData;
             }
@@ -196,7 +198,7 @@ export const useGameMainStorage = defineStore('game_data',{
                 }else if(Accessor[i]){
                         Accessor=Accessor[i];
                 }else{
-                    console.log("Err:Unknown Value:"+i+" When Parsing "+DataPath,this.RoundTempValues);
+                    console.log("Err:Unknown Value:"+i+" When Parsing "+DataPath,this.Global_BasicPlayerData.RoundTempValues);
                     return DataPath;
                 }
             }
@@ -215,10 +217,10 @@ export const useGameMainStorage = defineStore('game_data',{
                 //if(/^[a-zA-Z0-9_.]{2,96}$/.test(Target))
 
                 return _str;
-            }else if((this.RoundTempValues as Record<string,any>)[Id]){
-                    return (this.RoundTempValues as Record<string,any>)[Id].replaceAll('\n',"<br/>") || Id;
+            }else if((this.Global_BasicPlayerData.RoundTempValues as Record<string,any>)[Id]){
+                    return (this.Global_BasicPlayerData.RoundTempValues as Record<string,any>)[Id].replaceAll('\n',"<br/>") || Id;
             }else{
-                console.log("Err:Not found in Values:"+Id,this.RoundTempValues);
+                console.log("Err:Not found in Values:"+Id,this.Global_BasicPlayerData.RoundTempValues);
                 return Id;
             }
         },
@@ -234,31 +236,146 @@ export const useGameMainStorage = defineStore('game_data',{
         isFunctionName(name:string):boolean{
             return (Object.keys(functionEvents).indexOf(name)!=-1)
         },
+        isSpecialGBValueName(name:string):boolean{
+            return ["#give","#trig","#$set"].indexOf(name.slice(0,5))!=-1
+        },
+        generateid(totalLength:number):string{
+            const parentChars="1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!@#$%^&*()_+-=[]\\|/?.,<>"
+            const result=[];
+            for(let i=0;i<totalLength;i++) result.push(parentChars[Math.round((Math.random()*500)%parentChars.length)]);
+            return result.join("");
+        },
+        modSpecialGBValueName(name:string,value:conditionAccept|Array<Record<string,any>>){
+            const GB=this.Global_BasicPlayerData;
+            const generateid=this.generateid;
+            const effectParser=this.effectParser;
+            const Text_NestedMatchHandler=this.Text_NestedMatchHandler;
+            const ReadDataByString=this.ReadDataByString;
+            const isGBValueName=this.isGBValueName;
+            const modGBValueName=this.modGBValueName;
+            const isSpecialGBValueName=this.isSpecialGBValueName;
+            ({
+                "#give"(ItemId:conditionAccept|Array<Record<string,any>>){
+                    if(typeof ItemId !== "string"){
+                        console.log("modSpecialGBValueName Err:Unsupport type in #give param.type:",typeof ItemId)
+                        return;
+                    }
+                    ItemId=<string>ItemId;
+                    console.log("Give "+ItemId);
+                    //Only Accept String type.
+                    const getMode=(GB.GameOnItems as Record<string,any>)[ItemId]['is_divided'];
+                    if(getMode){
+                        if(!(GB.OtherStorage.PlayerBackPack as Record<string,any>)[ItemId]){
+                            (GB.OtherStorage.PlayerBackPack as Record<string,any>)[ItemId]={};
+                            (GB.OtherStorage.PlayerBackPack as Record<string,any>)[ItemId]["count"]=0;
+                            // It should be an Object type.
+                        }
+                        (GB.OtherStorage.PlayerBackPack as Record<string,any>)[ItemId]["count"]+=1;
+                        const _t_uuid=generateid(12)+`_${Date.now()}`;
+                        (GB.OtherStorage.PlayerBackPack as Record<string,any>)[ItemId][_t_uuid]=(GB.GameOnItems as Record<string,any>)[ItemId]; 
+                        (GB.OtherStorage.PlayerBackPack as Record<string,any>)[ItemId][_t_uuid]["uuid"]=_t_uuid;
+                        (GB.RoundTempValues as Record<string,any>)["LastItemUUID"]=_t_uuid;
+                    }else{
+                        if((GB.OtherStorage.PlayerBackPack as Record<string,any>)[ItemId]){
+                            (GB.OtherStorage.PlayerBackPack as Record<string,any>)[ItemId]["count"]+=1;
+                        }else{
+                            (GB.OtherStorage.PlayerBackPack as Record<string,any>)[ItemId]=(GB.GameOnItems as Record<string,any>)[ItemId];
+                            (GB.OtherStorage.PlayerBackPack as Record<string,any>)[ItemId]["count"]=1;
+                            (GB.OtherStorage.PlayerBackPack as Record<string,any>)[ItemId]["uuid"]=generateid(12)+`_${Date.now()}`;
+                        }
+                        (GB.RoundTempValues as Record<string,any>)["LastItemUUID"]=(GB.OtherStorage.PlayerBackPack as Record<string,any>)[ItemId]["uuid"];
+                    }
+                },
+                "#trig"(EventId:conditionAccept|Array<Record<string,any>>):void{
+                    if(typeof EventId !== "string"){
+                        console.log("modSpecialGBValueName Err:Unsupport type in #trig param.type:",typeof EventId)
+                        return;
+                    }
+                    EventId=<string>EventId;
+                    //Attention、use #trig to trigger event will not check condition.
+                    if((GameEventList as Record<string,any>)[EventId]["effect"] || (GameEventList as Record<string,any>)[EventId]){
+                    effectParser((GameEventList as Record<string,any>)[EventId]["effect"],(GameEventList as Record<string,any>)[EventId]["useVal"],(GameEventList as Record<string,any>)[EventId]["text"])();
+                    if((GameEventList as Record<string,any>)[EventId]["cost"]){
+                        GB._Round_TotalTimeCost+=(GameEventList as Record<string,any>)[EventId]["cost"];
+                    }}else{
+                        console.log("Err: tag '#trig' trying to call an unknown event '"+EventId+"'!");
+                    }
+                },
+                "#$set"(StorePath:conditionAccept|Array<Record<string,any>>):void{
+                    if(typeof StorePath !== "string"){
+                        console.log("modSpecialGBValueName Err:Unsupport type in #$set param.type:",typeof StorePath)
+                        return;
+                    }
+                    StorePath=Text_NestedMatchHandler(<string>StorePath,"#${","}$#");
+                    const Val_Source=StorePath.split("->")[0];
+                    const Val_Target=StorePath.split("->")[1];
+                    
+                    if(isGBValueName(Val_Target)["is"]){
+                        modGBValueName(Val_Target,ReadDataByString(Val_Source));
+                        // (GB as Record<string,any>)[Val_Target]=ReadDataByString(Val_Source);
+
+                    }else{
+                        if(Val_Target.indexOf(".")!==-1){
+                            console.log("modSpecialGBValueName Err:In #$set param:When Target not exist,you cant use '.' in its name! Your Target Value Name:"+Val_Target);
+                            return;
+                        }
+                        if(isSpecialGBValueName(Val_Target)){
+                            console.log("modSpecialGBValueName Err:In #$set param:You cant save data to Special Global Value.Your Target:"+Val_Target);
+                            return;
+                        }
+                        (GB as Record<string,any>)[Val_Target]=ReadDataByString(Val_Source);
+                    }
+                    
+                },
+                "#popW"(ItemList:conditionAccept|Array<Record<string,any>>):void{
+                    if(!(value instanceof Array)){
+                        console.log("modSpecialGBValueName Err:Unsupport type in #$set param.type:",typeof ItemList)
+                        return;
+                    }
+                    // When Pop Up Window Pause the gamee and waiting for the value return.
+                }
+            } as Record<string,(rValue:conditionAccept|Array<Record<string,any>>)=>void>)[name](value)
+        },
         isGBValueName(name:string):Record<string,any>{
             let Accessor=(<Record<string,any>>this.Global_BasicPlayerData);
+            name=this.Text_NestedMatchHandler(name,"#${","}$#")
             const ori=name.split(".");
             for(const i of ori){
                 if(typeof Accessor[i]=="string"||typeof Accessor[i]=="number"||typeof Accessor[i]=="boolean"){
+                    
                     return {"is":true,"value":Accessor[i]};
                 }else if(Accessor[i]){
                         Accessor=Accessor[i];
                 }else{
+                    if(this.isSpecialGBValueName(i)){
+                        return {"is":true,"value":"#$__SPECIAL_GBVALUE_HOLDER__$#"}
+                    }
                     return {"is":false,"value":-1};
                 }
             }
             return {"is":false,"value":-1};
         },
-        modGBValueName(name:string,value:conditionAccept):void{
+        modGBValueName(name:string,value:conditionAccept|Array<Record<string,any>>):void{
             let Accessor=(<Record<string,any>>this.Global_BasicPlayerData);
-            const ori=name.split(".");
-            for(const i of ori){
-                if(typeof Accessor[i]=="string"||typeof Accessor[i]=="number"||typeof Accessor[i]=="boolean"){
-                    Accessor[i]=value;
-                }else if(Accessor[i]){
-                        Accessor=Accessor[i];
-                }else{
+            // console.log(name,this.isSpecialGBValueName(name));
+            if(!this.isSpecialGBValueName(name)){
+                if(value instanceof Array){
+                    console.log("modGBValueName Err: Unsupport Type:",typeof value);
                     return;
                 }
+                name=this.Text_NestedMatchHandler(name,"#${","}$#")
+                const ori=name.split(".");
+                for(const i of ori){
+                    if(typeof Accessor[i]=="string"||typeof Accessor[i]=="number"||typeof Accessor[i]=="boolean"){
+                        Accessor[i]=value;
+                    }else if(Accessor[i]){
+                            Accessor=Accessor[i];
+                    }else{
+                        return;
+                    }
+            }}else{
+                // 0 - add
+                this.modSpecialGBValueName(name,value);
             }
         },
         factorParser(oriFactorJson:Record<string,any>):number{
@@ -273,7 +390,8 @@ export const useGameMainStorage = defineStore('game_data',{
                 "#min":(n1:number,n2:number)=>{ return Math.max(n1,n2);},
                 "#typ":(n1:number,n2:number)=>{ return n1*n2; },
             } as Record<string,(n1:number,n2:number)=>number>);
-            for(const i in oriFactorJson){
+            for(let i in oriFactorJson){
+                i=this.Text_NestedMatchHandler(i,"#${","}$#");
                 if(action[i.slice(0,4)]){
                     return action[i.slice(0,4)](this.Global_BasicPlayerData.BaseActionProcessSpeedRate,this.affectionParser(oriFactorJson[i]));
                 }  
@@ -292,7 +410,8 @@ export const useGameMainStorage = defineStore('game_data',{
                 "#typ":(n1:number,n2:number)=>{ return n1*n2; },
             } as Record<string,(n1:number,n2:number)=>number>);
             let affection=0;
-            for(const i in oriAffectionJson){
+            for(let i in oriAffectionJson){
+                i=this.Text_NestedMatchHandler(i,"#${","}$#");
                 const _t_tag=this.isGBValueName(i);
                 if(_t_tag["is"]){
                     let _t_store=_t_tag["value"];
@@ -314,15 +433,11 @@ export const useGameMainStorage = defineStore('game_data',{
         },
         getVal(ori:conditionAccept):conditionAccept{
             if(typeof ori == "string"){
-                const _t=(this.RoundTempValues as Record<string,conditionAccept>)[ori];
+                const _t=(this.Global_BasicPlayerData.RoundTempValues as Record<string,conditionAccept>)[ori];
                 if(_t){
                     return _t; 
                 }else return ori;
             }else return ori;
-        },
-        getNPCDialog(npcid:string){
-            const NPCDialogID=(this.Global_BasicPlayerData.GameOnNpcs as Record<string,any>)[npcid]["usingDialong"] || null;
-
         },
         singleConditionHandler(tag:string,condition:string,value:conditionAccept,affection?:Record<string,any>):boolean{
             const that=(this.Global_BasicPlayerData as Record<string,any>);
@@ -469,7 +584,8 @@ export const useGameMainStorage = defineStore('game_data',{
         ORConditionHandler(tag:string,oriORConditionJson:Record<string,any>,affection?:Record<string,any>):boolean{
             // const _data=Object.keys(oriORConditionJson);
             let _r=false;
-            for(const i in oriORConditionJson){
+            for(let i in oriORConditionJson){
+                i=this.Text_NestedMatchHandler(i,"#${","}$#");
                 if(i.slice(0,3)=="#OR"){
                     _r=(_r || this.ORConditionHandler(tag,oriORConditionJson[i],affection));
                 }else if(i.slice(0,4)=="#AND"){
@@ -492,7 +608,8 @@ export const useGameMainStorage = defineStore('game_data',{
         },
         ANDConditionHandler(tag:string,oriANDConditionJson:Record<string,any>,affection?:Record<string,any>):boolean{
             let _r=true;
-            for(const i in oriANDConditionJson){
+            for(let i in oriANDConditionJson){
+                i=this.Text_NestedMatchHandler(i,"#${","}$#");
                 if(i.slice(0,3)=="#OR"){
                     _r=(_r && this.ORConditionHandler(tag,oriANDConditionJson[i],affection));
                 }else if(i.slice(0,4)=="#AND"){
@@ -517,7 +634,8 @@ export const useGameMainStorage = defineStore('game_data',{
             //support has,equ,lss,gtr,leq,geq,OR,AND
             let _r=true;
             console.log("tagCondition:Parsing:"+tag);
-            for(const j in oriConditionJson){
+            for(let j in oriConditionJson){
+                j=this.Text_NestedMatchHandler(j,"#${","}$#");
                 if(j.slice(0,3)=="#OR"){
                     _r=(_r && this.ORConditionHandler(tag,oriConditionJson[j],affection));
                     console.log("Result After OR",_r);
@@ -548,7 +666,8 @@ export const useGameMainStorage = defineStore('game_data',{
             //support has,equ,lss,gtr,leq,geq,neq,OR,AND
             let _dir_r=true;
             const _result=<Record<string,any>>{};
-            for(const i in oriConditionJson){
+            for(let i in oriConditionJson){
+                i=this.Text_NestedMatchHandler(i,"#${","}$#");
                 let _r=true;
                 if(this.isFunctionName(i)){
                     console.log("Find Function Name:"+i);
@@ -578,8 +697,8 @@ export const useGameMainStorage = defineStore('game_data',{
                     for(const j in useVal){
                         if(j==i){
                             T_S=j;
-                            if(!(this.RoundTempValues as Record<string,any>)[useVal[j]])
-                                (this.RoundTempValues as Record<string,any>)[useVal[j]]=0;
+                            if(!(this.Global_BasicPlayerData.RoundTempValues as Record<string,any>)[useVal[j]])
+                                (this.Global_BasicPlayerData.RoundTempValues as Record<string,any>)[useVal[j]]=0;
                             break;
                         }
                     }
@@ -587,10 +706,10 @@ export const useGameMainStorage = defineStore('game_data',{
                 
                 if(_r && oriConditionJson[i]["condition-true"] && !isDirectlyUse && !isFromFuction){
                     _result[i]=oriConditionJson[i]["condition-true"]
-                    if(T_S!="") (this.RoundTempValues as Record<string,any>)[useVal![T_S]]=oriConditionJson[i]["condition-true"]
+                    if(T_S!="") (this.Global_BasicPlayerData.RoundTempValues as Record<string,any>)[useVal![T_S]]=oriConditionJson[i]["condition-true"]
                 }else if(!_r && oriConditionJson[i]["condition-false"] && !isDirectlyUse && !isFromFuction){
                     _result[i]=oriConditionJson[i]["condition-false"]
-                    if(T_S!="") (this.RoundTempValues as Record<string,any>)[useVal![T_S]]=oriConditionJson[i]["condition-false"]
+                    if(T_S!="") (this.Global_BasicPlayerData.RoundTempValues as Record<string,any>)[useVal![T_S]]=oriConditionJson[i]["condition-false"]
                 }
                 _dir_r=_dir_r && _r;
             }
@@ -601,7 +720,8 @@ export const useGameMainStorage = defineStore('game_data',{
             return _result;
         },
         actionParser(oriActionJson:Record<string,any>):void{
-            for(const i in oriActionJson){
+            for(let i in oriActionJson){
+                i=this.Text_NestedMatchHandler(i,"#${","}$#");
                 console.log("ActionParser:Parsing "+i);
                 if(i=="condition"){
                     for(const j in oriActionJson[i]){
@@ -636,16 +756,23 @@ export const useGameMainStorage = defineStore('game_data',{
             }
         },
         addParser(oriAddJson:Record<string,any>,useVal?:Record<string,any>,pushLog?:string):void{
-            for(const i in oriAddJson){
+            for(let i in oriAddJson){
+                const _i=i;
+                i=this.Text_NestedMatchHandler(i,"#${","}$#");
                 if(i=="condition"){
-                    const _t=this.conditionParser(oriAddJson[i],useVal,pushLog);
+                    const _t=this.conditionParser(oriAddJson[_i],useVal,pushLog);
                     for(const i in _t){
                         const _t_g=this.isGBValueName(i);
                         if(typeof _t[i]=="string"){
-                            if((this.RoundTempValues as Record<string,any>)[_t[i]]) _t[i]=(this.RoundTempValues as Record<string,any>)[_t[i]];
+                            if((this.Global_BasicPlayerData.RoundTempValues as Record<string,any>)[_t[i]]) _t[i]=(this.Global_BasicPlayerData.RoundTempValues as Record<string,any>)[_t[i]];
                         }
                         if(_t_g["is"]){
-                            this.modGBValueName(i,_t_g["value"]+_t[i])
+                            if(_t_g["value"]=="#$__SPECIAL_GBVALUE_HOLDER__$#"){
+                                this.modSpecialGBValueName(i,oriAddJson[_i]);
+                            }else{
+                                this.modGBValueName(i,_t_g["value"]+oriAddJson[_i]);
+                            }
+                            
                         }else{
                             (this.Global_BasicPlayerData.PlayerTags as Record<string,number>)[i]+=<number>_t[i]
                         }
@@ -655,36 +782,48 @@ export const useGameMainStorage = defineStore('game_data',{
                     if(useVal){
                         for(const j in useVal){
                             if(j==i){
-                                (this.RoundTempValues as Record<string,any>)[useVal[j]]=oriAddJson[i];
+                                (this.Global_BasicPlayerData.RoundTempValues as Record<string,any>)[useVal[j]]=oriAddJson[_i];
                                 break;
                             }
                         }
                     }
                     
                     const _t_g=this.isGBValueName(i);
-                    if(typeof oriAddJson[i]=="string"){
-                        if((this.RoundTempValues as Record<string,any>)[oriAddJson[i]]) oriAddJson[i]=(this.RoundTempValues as Record<string,any>)[oriAddJson[i]];
+                    if(typeof oriAddJson[_i]=="string"){
+                        if((this.Global_BasicPlayerData.RoundTempValues as Record<string,any>)[oriAddJson[_i]]) oriAddJson[_i]=(this.Global_BasicPlayerData.RoundTempValues as Record<string,any>)[oriAddJson[_i]];
                     }
                     if(_t_g["is"]){
-                        this.modGBValueName(i,_t_g["value"]+oriAddJson[i])
+                        console.log("addParser: ",i,_t_g);
+                        // both add and minus may face many capability issues. Need to fix.
+                        if(_t_g["value"]=="#$__SPECIAL_GBVALUE_HOLDER__$#"){
+                            this.modSpecialGBValueName(i,oriAddJson[_i]);
+                        }else{
+                            this.modGBValueName(i,_t_g["value"]+oriAddJson[_i]);
+                        }
                     }else{
-                        (this.Global_BasicPlayerData.PlayerTags as Record<string,number>)[i]+=<number>oriAddJson[i]
+                        (this.Global_BasicPlayerData.PlayerTags as Record<string,number>)[i]+=<number>oriAddJson[_i]
                     }
                 }
             }
             if(pushLog) (this.Global_BasicPlayerData.ThisRoundEvent as Array<string>).push(this.$t(pushLog));
         },
         minusParser(oriMinusJson:Record<string,any>,useVal?:Record<string,any>,pushLog?:string):void{
-            for(const i in oriMinusJson){
+            for(let i in oriMinusJson){
+                const _i=i;
+                i=this.Text_NestedMatchHandler(i,"#${","}$#");
                 if(i=="condition"){
-                    const _t=this.conditionParser(oriMinusJson[i],useVal,pushLog);
+                    const _t=this.conditionParser(oriMinusJson[_i],useVal,pushLog);
                     for(const i in _t){
                         const _t_g=this.isGBValueName(i);
                         if(typeof _t[i]=="string"){
-                            if((this.RoundTempValues as Record<string,any>)[_t[i]]) _t[i]=(this.RoundTempValues as Record<string,any>)[_t[i]];
+                            if((this.Global_BasicPlayerData.RoundTempValues as Record<string,any>)[_t[i]]) _t[i]=(this.Global_BasicPlayerData.RoundTempValues as Record<string,any>)[_t[i]];
                         }
                         if(_t_g["is"]){
-                            _t_g["value"]=_t_g["value"]-_t[i];
+                            if(_t_g["value"]=="#$__SPECIAL_GBVALUE_HOLDER__$#"){
+                                this.modSpecialGBValueName(i,oriMinusJson[_i]);
+                            }else{
+                                this.modGBValueName(i,_t_g["value"]-oriMinusJson[_i]);
+                            }
                         }else{
                             (this.Global_BasicPlayerData.PlayerTags as Record<string,number>)[i]-=<number>_t[i]
                         }
@@ -692,29 +831,39 @@ export const useGameMainStorage = defineStore('game_data',{
                     pushLog=undefined;
                 }else{
                     const _t_g=this.isGBValueName(i);
-                    if(typeof oriMinusJson[i]=="string"){
-                        if((this.RoundTempValues as Record<string,any>)[oriMinusJson[i]]) oriMinusJson[i]=(this.RoundTempValues as Record<string,any>)[oriMinusJson[i]];
+                    if(typeof oriMinusJson[_i]=="string"){
+                        if((this.Global_BasicPlayerData.RoundTempValues as Record<string,any>)[oriMinusJson[_i]]) oriMinusJson[_i]=(this.Global_BasicPlayerData.RoundTempValues as Record<string,any>)[oriMinusJson[_i]];
                     }
                     if(_t_g["is"]){
-                        _t_g["value"]=_t_g["value"]-oriMinusJson[i];
+                        if(_t_g["value"]=="#$__SPECIAL_GBVALUE_HOLDER__$#"){
+                            this.modSpecialGBValueName(i,oriMinusJson[_i]);
+                        }else{
+                            this.modGBValueName(i,_t_g["value"]-oriMinusJson[_i]);
+                        }
                     }else{
-                        (this.Global_BasicPlayerData.PlayerTags as Record<string,number>)[i]-=<number>oriMinusJson[i]
+                        (this.Global_BasicPlayerData.PlayerTags as Record<string,number>)[i]-=<number>oriMinusJson[_i]
                     }
                 }
             }
             if(pushLog) (this.Global_BasicPlayerData.ThisRoundEvent as Array<string>).push(this.$t(pushLog));
         },
         modifyParser(oriModifyJson:Record<string,any>,useVal?:Record<string,any>,pushLog?:string):void{
-            for(const i in oriModifyJson){
+            for(let i in oriModifyJson){
+                const _i=i;
+                i=this.Text_NestedMatchHandler(i,"#${","}$#");
                 if(i=="condition"){
-                    const _t=this.conditionParser(oriModifyJson[i],useVal,pushLog);
+                    const _t=this.conditionParser(oriModifyJson[_i],useVal,pushLog);
                     for(const i in _t){
                         const _t_g=this.isGBValueName(i);
                         if(typeof _t[i]=="string"){
-                            if((this.RoundTempValues as Record<string,any>)[_t[i]]) _t[i]=(this.RoundTempValues as Record<string,any>)[_t[i]];
+                            if((this.Global_BasicPlayerData.RoundTempValues as Record<string,any>)[_t[i]]) _t[i]=(this.Global_BasicPlayerData.RoundTempValues as Record<string,any>)[_t[i]];
                         }
                         if(_t_g["is"]){
-                            _t_g["value"]=_t[i];
+                            if(_t_g["value"]=="#$__SPECIAL_GBVALUE_HOLDER__$#"){
+                                this.modSpecialGBValueName(i,oriModifyJson[_i]);
+                            }else{
+                                this.modGBValueName(i,oriModifyJson[_i]);
+                            }
                         }else{
                             (this.Global_BasicPlayerData.PlayerTags as Record<string,conditionAccept>)[i]=<conditionAccept>_t[i]
                         }
@@ -724,33 +873,41 @@ export const useGameMainStorage = defineStore('game_data',{
                     if(useVal){
                         for(const j in useVal){
                             if(j==i){
-                                (this.RoundTempValues as Record<string,any>)[useVal[j]]=oriModifyJson[i];
+                                (this.Global_BasicPlayerData.RoundTempValues as Record<string,any>)[useVal[j]]=oriModifyJson[_i];
                                 break;
                             }
                         }
                     }
                     
                     const _t_g=this.isGBValueName(i);
-                    if(typeof oriModifyJson[i]=="string"){
-                        if((this.RoundTempValues as Record<string,any>)[oriModifyJson[i]]) oriModifyJson[i]=(this.RoundTempValues as Record<string,any>)[oriModifyJson[i]];
+                    if(typeof oriModifyJson[_i]=="string"){
+                        if((this.Global_BasicPlayerData.RoundTempValues as Record<string,any>)[oriModifyJson[_i]]) oriModifyJson[_i]=(this.Global_BasicPlayerData.RoundTempValues as Record<string,any>)[oriModifyJson[_i]];
                     }
+                    console.log("ModifyParser: ",_i,_t_g);
                     if(_t_g["is"]){
-                        _t_g["value"]=oriModifyJson[i];
+                        if(_t_g["value"]=="#$__SPECIAL_GBVALUE_HOLDER__$#"){
+                            this.modSpecialGBValueName(i,oriModifyJson[_i]);
+                        }else{
+                            this.modGBValueName(i,oriModifyJson[_i]);
+                        }
+                        // _t_g["value"]=oriModifyJson[_i];
                     }else{
-                        (this.Global_BasicPlayerData.PlayerTags as Record<string,conditionAccept>)[i]=<conditionAccept>oriModifyJson[i]
+                        (this.Global_BasicPlayerData.PlayerTags as Record<string,conditionAccept>)[i]=<conditionAccept>oriModifyJson[_i]
                     }
                 }
             }
             if(pushLog) (this.Global_BasicPlayerData.ThisRoundEvent as Array<string>).push(this.$t(pushLog));
         },
         removeParser(oriRemoveJson:Record<string,any>,useVal?:Record<string,any>,pushLog?:string):void{
-            for(const i in oriRemoveJson){
+            for(let i in oriRemoveJson){
+                const _i=i;
+                i=this.Text_NestedMatchHandler(i,"#${","}$#");
                 if(i=="condition"){
-                    const _t=this.conditionParser(oriRemoveJson[i],useVal,pushLog);
+                    const _t=this.conditionParser(oriRemoveJson[_i],useVal,pushLog);
                     for(const i in _t){
                         const _t_g=this.isGBValueName(i);
                         if(_t_g["is"]){
-                            _t_g["value"]=-1;
+                            this.modGBValueName(i,-1);
                         }else{
                             delete (this.Global_BasicPlayerData.PlayerTags as Record<string,number>)[i];
                         }
@@ -760,7 +917,7 @@ export const useGameMainStorage = defineStore('game_data',{
                     if(useVal){
                         for(const j in useVal){
                             if(j==i){
-                                (this.RoundTempValues as Record<string,any>)[j]=0;
+                                (this.Global_BasicPlayerData.RoundTempValues as Record<string,any>)[j]=0;
                                 break;
                             }
                         }
@@ -768,7 +925,7 @@ export const useGameMainStorage = defineStore('game_data',{
                     
                     const _t_g=this.isGBValueName(i);
                     if(_t_g["is"]){
-                        _t_g["value"]=-1;
+                        this.modGBValueName(i,-1);
                     }else{
                         delete (this.Global_BasicPlayerData.PlayerTags as Record<string,number>)[i];
                     }
@@ -778,11 +935,13 @@ export const useGameMainStorage = defineStore('game_data',{
         },
         locationEventParser(oriLocationEventJson:Record<string,any>,applyVal?:Record<string,any>):()=>void{
             const actionParser=this.actionParser;
+            const Text_NestedMatchHandler=this.Text_NestedMatchHandler;
             return ()=>{
-                for(const i in oriLocationEventJson){
+                for(let i in oriLocationEventJson){
+                    i=Text_NestedMatchHandler(i,"#${","}$#");
                     if(i=="requireVal" && applyVal){
                         for(const j in oriLocationEventJson[i]){
-                            (this.RoundTempValues as Record<string,any>)[`#$${j}`]=applyVal[oriLocationEventJson[i][j]["Slot"]];
+                            (this.Global_BasicPlayerData.RoundTempValues as Record<string,any>)[`#$${j}`]=applyVal[oriLocationEventJson[i][j]["Slot"]];
                         }
                     }else if(i=="action"){
                         actionParser(oriLocationEventJson[i]);
@@ -795,8 +954,10 @@ export const useGameMainStorage = defineStore('game_data',{
             const minusParser=this.minusParser;
             const modifyParser=this.modifyParser;
             const removeParser=this.removeParser;
+            const Text_NestedMatchHandler=this.Text_NestedMatchHandler;
             return ()=>{
-                for(const i in oriEffectJson){
+                for(let i in oriEffectJson){
+                    i=Text_NestedMatchHandler(i,"#${","}$#");
                     if(i=="modify"){
                         modifyParser(oriEffectJson[i],useVal,pushLog);
                         pushLog=undefined;
@@ -814,7 +975,7 @@ export const useGameMainStorage = defineStore('game_data',{
             }
         },
         // interceptor_register(){
-
+        // Use Proxy to seize interceptor
         // },
         // interceptor_destorier(){
 

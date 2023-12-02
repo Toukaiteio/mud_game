@@ -26,14 +26,14 @@
 </template>
 <script lang="ts" setup>
 import { useGameMainStorage } from '@/utils/store';
-import GameEventList from '@/resources/game/events/events.json';
+
 import GameLocationFunctionList from '@/resources/game/locations/LocationFunctions.json';
-const { Global_BasicPlayerData,RoundTempValues,actionParser,factorParser,conditionParser,locationEventParser,effectParser,$t }=useGameMainStorage();
-import GameNPCDialog from '@/resources/game/npc/npc_dialog.json';
-// I put Gamenpc dialog here just because I think there are too many things imported in store.ts.So as GameItems
+const { Global_BasicPlayerData,GameEventList,actionParser,factorParser,conditionParser,locationEventParser,effectParser,$t }=useGameMainStorage();
+import { PROGRAMHOLDER } from '@/resources/game/PROGRAM_HOLDER';
 import ItemDefault from '@/resources/game/items/itemDefault.json';
 import GameItems from '@/resources/game/items/items.json';
 //Load Game Items to Global_BasicPlayerData.GameOnItems.
+if(Object.keys(Global_BasicPlayerData.GameOnItems).length==0)
 for(const i in GameItems){
     const _new_item=({} as Record<string,any>);
     for(const j in ItemDefault){
@@ -44,11 +44,9 @@ for(const i in GameItems){
     }
     (Global_BasicPlayerData.GameOnItems as Record<string,any>)[i]=_new_item;
 }
-
-// Add Give param in Event - to make event can give player item.
-// Add Weather System.
+// Add Weather System. Use Event.
 // Add a Canvas Engine.
-// Add Sound effect. （ Sound \ BGM ） Separated
+// Add Sound effect. （ Sound \ BGM ） should be Separated
 const LocationAcationActor=(oriAction:Record<string,any>):void=>{
     locationEventParser(oriAction["fun_name"],oriAction["_funcs"])();
     TimeAddUp(oriAction["fun_name"]["cost"]);
@@ -212,59 +210,7 @@ const MoveTo=(lid:string):void=>{
         },50);
     }
 }
-interface DialogEffect{
-    effect:Record<string,any>,
-    useVal:Record<string,any>|undefined
-}
-const LoadNpcDialog=(TargetID:string)=>{
-    //Find NPC
-    const npc=(Global_BasicPlayerData.GameOnNpcs as Record<string,any>)[TargetID];
-    console.log(TargetID);
-    //Check if has dialog
-    const dialog=(GameNPCDialog as Record<string,any>)[(npc as Record<string,any>)["usingDialog"]];
-    const dialog_effects=([] as Array<DialogEffect>);
-    if(dialog){
-        for(const i in dialog){
-            if(dialog[i]["condition"]){
-                if(conditionParser(dialog[i]["condition"],undefined,undefined,true,dialog[i]["condition"]["affection"],true,dialog[i]["requireVal"])["_direct_use_result_transer"]){
-                    if(dialog[i]["effect"])
-                        dialog_effects.push(({
-                            "effect":dialog[i]["effect"],
-                            "useVal":dialog[i]["useVal"],
-                        } as DialogEffect));
-                    (Global_BasicPlayerData.ThisRoundEvent as Array<string>).push($t(i));
-                }
-                
-            }else{
-                if(dialog[i]["effect"])
-                    dialog_effects.push(({
-                                "effect":dialog[i]["effect"],
-                                "useVal":dialog[i]["useVal"],
-                            } as DialogEffect));
-                (Global_BasicPlayerData.ThisRoundEvent as Array<string>).push($t(i));
-            }
-            
-        }
-    }else{
-        (Global_BasicPlayerData.ThisRoundEvent as Array<string>).push($t((npc as Record<string,any>)["usingDialog"]))
-    }
-    console.log("Dialog Effect:",dialog_effects);
-    for(const i of dialog_effects){
-        effectParser(i["effect"],i["useVal"],undefined)();
-    }
-}
-const PROGRAMHOLDER={
-    "#PROGRAM_HOLD_TALK_FUNCTION":(TargetID:string)=>{
-        (RoundTempValues as Record<string,any>)["#PROGRAM_HOLD_TALK_FUNCTION"]=$t("_function_TALK_Prefix")+$t((Global_BasicPlayerData as Record<string,any>)["GameOnNpcs"][TargetID]["name"]);
-        (RoundTempValues as Record<string,any>)["#PROGRAM_HOLD_TALK_CONTENT"]=$t("_function_TALK_Prefix")+" \n";
-    },
-    "#PROGRAM_HOLD_TALK_FUNCTION_DO":(TargetID:string)=>{
-        LoadNpcDialog(TargetID);
-    },
-    // "#PROGRAM_HOLD_PLANT_FUNCTION":(LocationID:string)=>{
 
-    // }
-}
 const GetActionList=():void=>{
     Global_BasicPlayerData.RoundAllowActions=[];
     const _t=(Global_BasicPlayerData.GameOnMap as Record<string,any>)[Global_BasicPlayerData.PlayerLocate]["functions"];
@@ -311,11 +257,7 @@ const GetRoundEvent=():void=>{
     //Trigger All Event
     for(const j in (GameEventList as Record<string,any>)){
         if(conditionParser((GameEventList as Record<string,any>)[j]["condition"],undefined,undefined,true)["_direct_use_result_transer"]){
-            if((GameEventList as Record<string,any>)[j]["useVal"]){
-                effectParser((GameEventList as Record<string,any>)[j]["effect"],(GameEventList as Record<string,any>)[j]["useVal"],(GameEventList as Record<string,any>)[j]["text"])();
-            }else{
-                effectParser((GameEventList as Record<string,any>)[j]["effect"],undefined,(GameEventList as Record<string,any>)[j]["text"])();
-            }
+            effectParser((GameEventList as Record<string,any>)[j]["effect"],(GameEventList as Record<string,any>)[j]["useVal"],(GameEventList as Record<string,any>)[j]["text"])();
             if((GameEventList as Record<string,any>)[j]["cost"]){
                 Global_BasicPlayerData._Round_TotalTimeCost+=(GameEventList as Record<string,any>)[j]["cost"];
             }

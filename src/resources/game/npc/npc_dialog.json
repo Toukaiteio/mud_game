@@ -33,6 +33,11 @@
             "effect":{
                 "add":{
                     "TalkedTo_Npc100_Times":1
+                },
+                "modify":{
+                    "#give":"_item_woodensword",
+                    "#$set":"LastItemUUID->npc_gived_woodensword_uuid",
+                    "OtherStorage.PlayerBackPack._item_woodensword.#${npc_gived_woodensword_uuid}$#.durability":350
                 }
             }
         }
